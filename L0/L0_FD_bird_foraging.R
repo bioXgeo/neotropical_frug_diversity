@@ -1,4 +1,5 @@
 #Calculating Functional Diversity (Functional Dispersion - not weighted by abundance)
+# Adding foraging prevalence as a fuzzy trait
 # 1205 species total (790 birds and 415 mammals)
 
 library(mFD)
@@ -20,147 +21,163 @@ library(viridis)
 library(cowplot)
 library(gridExtra)
 
-#Read in mam PAM
-mam_PAM <- read.table("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/PAM_mam.txt")
+#Read in bird PAM
+bird_PAM <- read.table("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/PAM_bird.txt")
 
-# Read in mammal and mam traits
-mam_traits_df <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/mam_traits_df_FD_final.csv")
+# Read in mammal and bird traits
+bird_traits_df <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_impute.csv")
 
 #Remove coordinates outside of Tropical Andes from the PAM
 # Read the shapefile
 TA_shapefile <- st_read("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_andes_shp/Tropical_Andes_shape.shp")  # Replace with the path to your shapefile
 
 #Location key to keep things straight for later on
-coordinates_df_mam <-as.data.frame(mam_PAM[,1:2])
+coordinates_df_bird <-as.data.frame(bird_PAM[,1:2])
 
 # Convert the dataframe to an sf object
-coordinates_sf_mam <- st_as_sf(coordinates_df_mam, coords = c("Longitude.x.", "Latitude.y."), crs = st_crs(TA_shapefile))
+coordinates_sf_bird <- st_as_sf(coordinates_df_bird, coords = c("Longitude.x.", "Latitude.y."), crs = st_crs(TA_shapefile))
 
 # Perform the spatial intersection
-intersections_mam_TA <- st_intersection(coordinates_sf_mam, TA_shapefile)
+intersections_bird_TA <- st_intersection(coordinates_sf_bird, TA_shapefile)
 
 # Convert the intersected sf object back to a dataframe
-coordinates_df_subset_mam <- as.data.frame(intersections_mam_TA)
+coordinates_df_subset_bird <- as.data.frame(intersections_bird_TA)
 
 # Print the resulting subset of coordinates
-print(coordinates_df_subset_mam)
+print(coordinates_df_subset_bird)
 
 # Convert the point geometry to a dataframe of longitude and latitude
-subset_mam <- as.data.frame(st_coordinates(intersections_mam_TA))
+subset_bird <- as.data.frame(st_coordinates(intersections_bird_TA))
 
-mam_PAM <- as.data.frame(mam_PAM)
 
+# Match the coordinates to the original dataframe
 #merge the subset and full dataframe together to get final TA dataset
-mam_PAM_filter <- merge(mam_PAM, subset_mam, by.x = c("Longitude.x.", "Latitude.y."), by.y = c("X", "Y"))
+bird_PAM_filter <- merge(bird_PAM, subset_bird, by.x = c("Longitude.x.", "Latitude.y."), by.y = c("X", "Y"))
 
 
 # Turn PAM into matrix
-mam_PAM <- as.matrix(mam_PAM_filter)
+bird_PAM <- as.matrix(bird_PAM_filter)
 
 # Add rownames
 # Get the number of rows in the matrix
-num_rows <- nrow(mam_PAM_filter)
+num_rows <- nrow(bird_PAM)
 
 # Generate unique row names
 row_names <- paste0("cell", 1:num_rows)
 
 # Assign row names to the matrix
-rownames(mam_PAM_filter) <- row_names
+rownames(bird_PAM) <- row_names
 
 # Print the matrix with row names
-print(mam_PAM_filter)
-column_names <- colnames(mam_PAM_filter)
+print(bird_PAM)
+column_names <- colnames(bird_PAM)
 clean_column_names <- gsub("_", " ", column_names)
 
 #Insert clean column names
-colnames(mam_PAM_filter) <- clean_column_names
+colnames(bird_PAM) <- clean_column_names
+
+
+#rename bird diet cat column to match mammals
+colnames(bird_traits_df)[2] <- "IUCN_species_name"
+bird_traits_df$X <- NULL
+colnames(bird_traits_df)[2] <- "diet_cat"
+
 
 #turn data into correct data types for inputs into the trait categories dataframe
-mam_traits_df$diet_cat <- as.factor(mam_traits_df$diet_cat)
-mam_traits_df$diet_breadth <- as.numeric(mam_traits_df$diet_breadth)
-mam_traits_df$body_mass_e <- as.numeric(mam_traits_df$body_mass_e)
-mam_traits_df$generation_time<- as.numeric(mam_traits_df$generation_time)
-mam_traits_df$habitat_breadth <- factor(mam_traits_df$habitat_breadth, ordered = TRUE)
-#names(mam_traits_df)[1] <- ""
-
-
+bird_traits_df$diet_cat <- as.factor(bird_traits_df$diet_cat)
+bird_traits_df$diet_breadth <- as.numeric(bird_traits_df$diet_breadth)
+bird_traits_df$body_mass_e <- as.numeric(bird_traits_df$body_mass_e)
+bird_traits_df$generation_time<- as.numeric(bird_traits_df$generation_time)
+bird_traits_df$habitat_breadth <- factor(bird_traits_df$habitat_breadth, ordered = TRUE)
+bird_traits_df$for_strat_water <- as.numeric(bird_traits_df$for_strat_water)
+bird_traits_df$for_strat_ground_e <-as.numeric(bird_traits_df$for_strat_ground_e)
+bird_traits_df$for_strat_understory_e <- as.numeric(bird_traits_df$for_strat_understory_e)
+bird_traits_df$for_strat_midhigh_e <- as.numeric(bird_traits_df$for_strat_midhigh_e)
+bird_traits_df$for_strat_canopy_e <- as.numeric(bird_traits_df$for_strat_canopy_e)
+bird_traits_df$for_strat_aerial_e <- as.numeric(bird_traits_df$for_strat_aerial_e)
 # Remove the species from PAM that have no occurrences anymore after subsetting to TA
 # Remove columns with sum equal to zero
-PAM_mam_site_final <- mam_PAM_filter[, colSums(mam_PAM_filter) != 0]
+PAM_bird_site_final <- bird_PAM[, colSums(bird_PAM) != 0]
 
 #Save coordinates for later
-site_loc_key_mam <- PAM_mam_site_final[,1:2]
+site_loc_key_bird <- PAM_bird_site_final[,1:2]
 
 
 columns_to_remove <- c(1,2)
-PAM_mam_site_final <- PAM_mam_site_final[,-columns_to_remove]
+PAM_bird_site_final <- PAM_bird_site_final[,-columns_to_remove]
 
-colnames <- colnames(PAM_mam_site_final)
+colnames <- colnames(PAM_bird_site_final)
 
 # Remove species names from trait matrix not in the PAM
-mam_traits_df_subset <- mam_traits_df %>% filter(X %in% colnames)
+bird_traits_df_subset <- bird_traits_df %>% filter(IUCN_species_name %in% colnames)
 
 
 # Turn trait dataframe into a matrix
-class(mam_traits_df)
-mam_traits_matrix <- as.matrix(mam_traits_df_subset)
+bird_traits_matrix <- as.matrix(bird_traits_df_subset)
 
 
 # Define row names as species names
-row_names <- mam_traits_matrix[,1]
+row_names <- bird_traits_matrix[,1]
 
 # Assign row names to the matrix
-rownames(mam_traits_matrix) <- row_names
+rownames(bird_traits_matrix) <- row_names
 
 # Turn back into dataframe
-mam_traits_df <-as.data.frame(mam_traits_matrix)
-mam_traits_df$X <-NULL
-
-
-#fix types
-mam_traits_df$diet_cat <- as.factor(mam_traits_df$diet_cat)
-mam_traits_df$diet_breadth <- as.numeric(mam_traits_df$diet_breadth)
-mam_traits_df$body_mass_e <- as.numeric(mam_traits_df$body_mass_e)
-mam_traits_df$generation_time<- as.numeric(mam_traits_df$generation_time)
-mam_traits_df$habitat_breadth <- factor(mam_traits_df$habitat_breadth, ordered = TRUE)
-
+bird_traits_df <-as.data.frame(bird_traits_matrix)
+bird_traits_df$IUCN_species_name <-NULL
+bird_traits_df_final <- bird_traits_df %>% select("diet_cat", "diet_breadth", "body_mass_e", "generation_time", "habitat_breadth", "for_strat_water","for_strat_ground_e","for_strat_understory_e","for_strat_midhigh_e","for_strat_canopy_e","for_strat_aerial_e")
 
 # Assign the trait types (habitat breadth would be ordinal because it is based on IUCN habitat categories)
-trait_name <- c("diet_cat", "diet_breadth", "body_mass_e", "generation_time", "habitat_breadth")
-trait_type <- c("N","Q","Q","Q","O")
+trait_name <- c("diet_cat", "diet_breadth", "body_mass_e", "generation_time", "habitat_breadth", "for_strat_water","for_strat_ground_e","for_strat_understory_e","for_strat_midhigh_e","for_strat_canopy_e","for_strat_aerial_e")
+trait_type <- c("N","Q","Q","Q","O","F","F","F","F","F","F")
+fuzzy_name <- c(NA,NA,NA,NA,NA,"foraging_strata","foraging_strata","foraging_strata","foraging_strata","foraging_strata","foraging_strata")
 
 # Create the trait type dataframe
-mam_traits_cat <- as.data.frame(cbind(trait_name, trait_type))
+bird_traits_cat <- as.data.frame(cbind(trait_name, trait_type, fuzzy_name))
 
 # View the trait type table
-knitr::kable(head(mam_traits_cat), 
+knitr::kable(head(bird_traits_cat), 
              caption = "Traits types based on **frugivore traits** dataset")
 
+bird_traits_df_final$diet_cat <- as.factor(bird_traits_df_final$diet_cat)
+bird_traits_df_final$diet_breadth <- as.numeric(bird_traits_df_final$diet_breadth)
+bird_traits_df_final$body_mass_e <- as.numeric(bird_traits_df_final$body_mass_e)
+bird_traits_df_final$generation_time<- as.numeric(bird_traits_df_final$generation_time)
+bird_traits_df_final$habitat_breadth <- factor(bird_traits_df_final$habitat_breadth, ordered = TRUE)
+bird_traits_df_final$for_strat_water <- as.numeric(bird_traits_df_final$for_strat_water)
+bird_traits_df_final$for_strat_ground_e <-as.numeric(bird_traits_df_final$for_strat_ground_e)
+bird_traits_df_final$for_strat_understory_e <- as.numeric(bird_traits_df_final$for_strat_understory_e)
+bird_traits_df_final$for_strat_midhigh_e <- as.numeric(bird_traits_df_final$for_strat_midhigh_e)
+bird_traits_df_final$for_strat_canopy_e <- as.numeric(bird_traits_df_final$for_strat_canopy_e)
+bird_traits_df_final$for_strat_aerial_e <- as.numeric(bird_traits_df_final$for_strat_aerial_e)
+
+
 # Species traits summary:
-mam_traits_summ <- mFD::sp.tr.summary(
-  tr_cat     = mam_traits_cat,   
-  sp_tr      = mam_traits_df, 
+bird_traits_summ <- mFD::sp.tr.summary(
+  tr_cat     = bird_traits_cat,   
+  sp_tr      = bird_traits_df_final, 
   stop_if_NA = TRUE)
 
 # View the trait types
-mam_traits_summ$"tr_types"  
+bird_traits_summ$"tr_types"  
 
 # View the traits types for non-continuous traits
-mam_traits_summ$"mod_list"                   
+bird_traits_summ$"mod_list"         
 
-#Turn to matrix
-PAM_mam_site_final <- as.matrix(PAM_mam_site_final)
+
+bird_traits_summ$"tr_summary_fuzzy_list"
+
 # Summary of the assemblages * species dataframe:
-asb_sp_mam_summ <- mFD::asb.sp.summary(asb_sp_w = PAM_mam_site_final)
+asb_sp_bird_summ <- mFD::asb.sp.summary(asb_sp_w = PAM_bird_site_final)
 
 # Occurences 
-asb_sp_mam_occ <- asb_sp_mam_summ$"asb_sp_occ"
+asb_sp_bird_occ <- asb_sp_bird_summ$"asb_sp_occ"
 
 #richness per cell
-asb_sp_mam_summ$"asb_sp_richn"           # Species richness per assemblage
+asb_sp_bird_summ$"asb_sp_richn"           # Species richness per assemblage
 
 # Names of species present in random assemblage
-asb_sp_mam_summ$"asb_sp_nm"[[200]]   
+asb_sp_bird_summ$"asb_sp_nm"[[200]]   
 
 ##FD 
 # scaled triats to center (x' = x - mean(x)), all traits have the same weight, gower distance because of mixed traits.
@@ -168,9 +185,9 @@ asb_sp_mam_summ$"asb_sp_nm"[[200]]
 # most of the dissimilarity. PCoA is a dimensionality reduction technique that aims to summarize the dissimilarity matrix into a lower-dimensional space while preserving the relative distances between species. 
 #It transforms the dissimilarities into coordinates along the principal axes that capture the most significant variation. 
 #However, the focus is on capturing overall dissimilarity patterns rather than explicitly separating and representing individual traits.
-sp_dist_mam <- mFD::funct.dist(
-  sp_tr         = mam_traits_df,
-  tr_cat        = mam_traits_cat,
+sp_dist_bird <- mFD::funct.dist(
+  sp_tr         = bird_traits_df_final,
+  tr_cat        = bird_traits_cat,
   metric        = "gower",
   scale_euclid  = "center",
   ordinal_var   = "classic",
@@ -178,15 +195,15 @@ sp_dist_mam <- mFD::funct.dist(
   stop_if_NA    = TRUE)
 
 # Choose number of output digits
-round(sp_dist_mam, 3)                 
+round(sp_dist_bird, 3)                 
 
 #Assessing quality using PCOA (values are coordinates in PCOA space)
 #Compute a Principal Coordinates Analysis (PCoA) using functional distance between species. Then the function evaluates the quality of spaces built using an increasing number of principal components. 
 #Quality is evaluated as the (absolute or squared) deviation between trait-based distance (input) and distance in the PCoA-based space (raw Euclidean distance or scaled distance according to its maximum value and maximum of trait-based distance). Option to compute a functional dendrogram and its quality. This function is based on the framework presented in Maire et al. (2015).
-#For mams the mad is lowest 4 dimensions. We can therefore go forward with 4 dimensions as this can decrease
+#For birds the mad is lowest 5 dimensions. But 4 is close and can therefore go forward with 4 dimensions as this can decrease
 # computation time and still closely represent the dissimilary matrix. May be able to skip the removal of species less than 4 per assemblage.
-fspaces_quality_mam<- mFD::quality.fspaces(
-  sp_dist             = sp_dist_mam,
+fspaces_quality_bird<- mFD::quality.fspaces(
+  sp_dist             = sp_dist_bird,
   maxdim_pcoa         = 10,
   deviation_weighting = "absolute",
   fdist_scaling       = FALSE,
@@ -194,13 +211,13 @@ fspaces_quality_mam<- mFD::quality.fspaces(
 
 # Look at the quality spaces only (MAD index looks at mean absolute deviation from the dissimilary matrix; want the deviation
 # to be low, meaning that the true distances have been retained in the PCA)
-round(fspaces_quality_mam$"quality_fspaces", 3)            
+round(fspaces_quality_bird$"quality_fspaces", 3)            
 
 # Plot the quality spaces (chose to look at 3D, 4D, and 5D since they had the lowest MAD). Will go with 4 dimensions.
 mFD::quality.fspaces.plot(
-  fspaces_quality            = fspaces_quality_mam,
+  fspaces_quality            = fspaces_quality_bird,
   quality_metric             = "mad",
-  fspaces_plot               = c("pcoa_3d", "pcoa_4d", 
+  fspaces_plot               = c("pcoa_4d", 
                                  "pcoa_5d"),
   name_file                  = NULL,
   range_dist                 = NULL,
@@ -212,26 +229,26 @@ mFD::quality.fspaces.plot(
 
 
 #testing correlation between functional axes and traits
-sp_faxes_coord_mam <- fspaces_quality_mam$"details_fspaces"$"sp_pc_coord"
+sp_faxes_coord_bird <- fspaces_quality_bird$"details_fspaces"$"sp_pc_coord"
 
 # View the components of the PCA axes *Remember the firt few components explain the most variation in dissimilarity. Clusters into groups
 # Computes linear model for continuous traits and Kruskall-Wallis tests for other types. 
-mam_tr_faxes <- mFD::traits.faxes.cor(
-  sp_tr          = mam_traits_df, 
-  sp_faxes_coord = sp_faxes_coord_mam[ , c("PC1", "PC2", "PC3", "PC4")], 
-  plot           = TRUE)
+bird_tr_faxes <- mFD::traits.faxes.cor(
+  sp_tr          = bird_traits_df_final, 
+  sp_faxes_coord = sp_faxes_coord_bird[ , c("PC1", "PC2", "PC3", "PC4")], 
+  plot           = F)
 
 # Print traits with significant effect:
-mam_tr_faxes$"tr_faxes_stat"[which(mam_tr_faxes$"tr_faxes_stat"$"p.value" < 0.05), ]
+bird_tr_faxes$"tr_faxes_stat"[which(bird_tr_faxes$"tr_faxes_stat"$"p.value" < 0.05), ]
 
 # Return plots:
-mam_tr_faxes$"tr_faxes_plot"
+bird_tr_faxes$"tr_faxes_plot"
 
 #plotting functional space
-sp_faxes_coord_mam <- fspaces_quality_mam$"details_fspaces"$"sp_pc_coord"
+sp_faxes_coord_bird <- fspaces_quality_bird$"details_fspaces"$"sp_pc_coord"
 
 big_plot <- mFD::funct.space.plot(
-  sp_faxes_coord  = sp_faxes_coord_mam[ , c("PC1", "PC2", "PC3", "PC4")],
+  sp_faxes_coord  = sp_faxes_coord_bird[ , c("PC1", "PC2", "PC3", "PC4")],
   faxes           = c("PC1", "PC2", "PC3", "PC4"),
   name_file       = NULL,
   faxes_nm        = NULL,
@@ -258,14 +275,14 @@ big_plot <- mFD::funct.space.plot(
 
 #Need to remove parts of the PAM that have values less than or equal to the number of dimensions (4)
 # Calculate row sums
-row_sums <- rowSums(PAM_mam_site_final)
-subset_matrix <- PAM_mam_site_final[row_sums >= 5, ]
+row_sums <- rowSums(PAM_bird_site_final)
+subset_matrix <- PAM_bird_site_final[row_sums >= 5, ]
 
 
 #computing FD
 # The number of species per assemblage has to be higher or equal to the number of traits
-alpha_fd_indices_mam <- mFD::alpha.fd.multidim(
-  sp_faxes_coord   = sp_faxes_coord_mam[ , c("PC1", "PC2", "PC3", "PC4")],
+alpha_fd_indices_bird <- mFD::alpha.fd.multidim(
+  sp_faxes_coord   = sp_faxes_coord_bird[ , c("PC1", "PC2", "PC3", "PC4")],
   asb_sp_w         = subset_matrix,
   ind_vect         = c("fide", "fdis", "fmpd", "fnnd", "feve", "fori", "fspe"), #did not run fdiv or fric (slows it down)
   scaling          = TRUE,
@@ -273,13 +290,14 @@ alpha_fd_indices_mam <- mFD::alpha.fd.multidim(
   details_returned = TRUE)
 
 
-details_list_mam <- alpha_fd_indices_mam$"details"
+details_list_bird <- alpha_fd_indices_bird$"details"
 
 #plot
 plots_alpha <- mFD::alpha.multidim.plot(
-  output_alpha_fd_multidim = alpha_fd_indices_mam,
+  output_alpha_fd_multidim = alpha_fd_indices_bird,
   plot_asb_nm              = c("cell40", "cell200"),
-  ind_nm                   = c("fide", "fdis"),
+  ind_nm                   = c("fdis", "fide", "fnnd"
+                        , "fori", "fspe"),
   faxes                    = NULL,
   faxes_nm                 = NULL,
   range_faxes              = c(NA, NA),
@@ -329,50 +347,64 @@ extent <- c(-91.65305, -57.48638, -22.90167, 12.43166)  # Set the desired extent
 empty_raster <- raster(resolution = resolution, xmn = extent[1], xmx = extent[2], ymn = extent[3], ymx = extent[4])
 
 # Generate coordinates
-subset_coords_mam <- site_loc_key_mam[rowSums(PAM_mam_site_final) >= 5, ]
-subset_coords_mam_sp <-subset_coords_mam[,1:2 ]
+subset_coords_bird <- site_loc_key_bird[rowSums(PAM_bird_site_final) >= 5, ]
+subset_coords_bird_sp <-subset_coords_bird[,1:2 ]
 
 #Get functional dispersion
-fdis_mam <- alpha_fd_indices_mam$functional_diversity_indices$fdis
+fdis_bird <- alpha_fd_indices_bird$functional_diversity_indices$fdis
 
-mam_fd_sp <- data.frame(subset_coords_mam_sp, fdis_mam)
+bird_fd_sp <- data.frame(subset_coords_bird_sp, fdis_bird)
 
 # Convert the dataframe to sf format
-spatial_fdis_mam <- st_as_sf(mam_fd_sp, coords = c("Longitude.x.", "Latitude.y."))
+spatial_fdis_bird <- st_as_sf(bird_fd_sp, coords = c("Longitude.x.", "Latitude.y."))
 
 # Rasterize the sf data to create the FD raster
-fd_raster_mam <- rasterize(spatial_fdis_mam, empty_raster)
+fd_raster_bird <- rasterize(spatial_fdis_bird, empty_raster)
 setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
-writeRaster(fd_raster_mam$fdis_mam, "FD_mams_TA.tif", format="GTiff",overwrite=T)
+writeRaster(fd_raster_bird$fdis_bird, "FD_birds_foraging_TA.tif", format="GTiff",overwrite=T)
+writeRaster(fd_raster_bird$ID, "FD_birds_TA_ID.tif", format="GTiff")
 
 #Species richness
-spec_rich_mam <- alpha_fd_indices_mam$functional_diversity_indices$sp_richn
+spec_rich_bird <- alpha_fd_indices_bird$functional_diversity_indices$sp_richn
 
-mam_spec_rich_sp <- data.frame(subset_coords_mam_sp, spec_rich_mam)
+bird_spec_rich_sp <- data.frame(subset_coords_bird_sp, spec_rich_bird)
 
 # Convert the dataframe to sf format
-spatial_spec_rich_mam <- st_as_sf(mam_spec_rich_sp, coords = c("Longitude.x.", "Latitude.y."))
+spatial_spec_rich_bird <- st_as_sf(bird_spec_rich_sp, coords = c("Longitude.x.", "Latitude.y."))
 
 # Rasterize the sf data to create the FD raster
-spec_rich_raster_mam <- rasterize(spatial_spec_rich_mam, empty_raster)
+spec_rich_raster_bird <- rasterize(spatial_spec_rich_bird, empty_raster)
 setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
-writeRaster(spec_rich_raster_mam$spec_rich_mam, "Spec_rich_TA.tif", format="GTiff",overwrite=T)
+writeRaster(spec_rich_raster_bird$spec_rich_bird, "Spec_rich_birds_TA.tif", format="GTiff",overwrite=T)
+
+# You can check some species in certain cells
+# You can use the ID raster to figure out what cell is what and look at assemblages of interest
+asb_sp_bird_summ_final <- mFD::asb.sp.summary(asb_sp_w = subset_matrix)
+
+# Occurences 
+asb_sp_bird_occ <- asb_sp_bird_summ_final$"asb_sp_occ"
+
+#richness per cell
+asb_sp_bird_summ_final$"asb_sp_richn"   # Species richness per assemblage
+
+# Names of species present in random assemblage
+asb_sp_bird_summ_final$"asb_sp_nm"[[6015]]   
 
 
 # Understand relationship between species richness and functional diversity
 library(ggplot2)
 
 # Diversity metrics
-mam_diversity <-  data.frame(spec_rich_mam, fdis_mam)
+bird_diversity <-  data.frame(spec_rich_bird, fdis_bird)
 
 # Create a scatter plot
-ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
+ggplot(bird_diversity, aes(x = spec_rich_bird, y = fdis_bird)) +
   geom_point() +
   xlab("Species Richness") +
   ylab("Functional Diversity")
 
 # Calculate correlation coefficient
-#correlation_mam_div <- cor(mam_diversity$spec_rich_mam, mam_diversity$fdis_mam)
+#correlation_bird_div <- cor(bird_diversity$spec_rich_bird, bird_diversity$fdis_bird)
 
 # Print the correlation coefficient
 #print(correlation)
@@ -380,30 +412,41 @@ ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
 # Regression
 
 # Perform linear regression
-#reg_model <- lm(fdis_mam ~ spec_rich_mam, data = mam_diversity)
+reg_model <- lm(fdis_bird ~ spec_rich_bird, data = bird_diversity)
 
 # Print the regression summary
-#summary(reg_model)
+summary(reg_model)
 
-#plot mam diversity as a function of species richness ()
-#ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
-#  geom_point() +
-#  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-#  xlab("Species Richness (spec_rich_mam)") +
-#  ylab("Functional Diversity (fdis_mam)") +
-#  ggtitle("Linear Regression: fdis_mam ~ spec_rich_mam")
+#plot bird diversity as a function of species richness ()
+# I just wanted to test and see if there was any relationship here, but TD and FD seem to vary independently in the Andes
+# Functional diversity cannot be explained by taxonomic diversity at this scale (10x10km)
+# It's possible this might be different at other scales (more species captured, maybe more redundancy at broader scales?)
+library(ggpmisc)
+ggplot(bird_diversity, aes(x = spec_rich_bird, y = fdis_bird)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  stat_poly_eq(
+    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~~")),
+    formula = y ~ x,
+    parse = TRUE,
+    label.x = "right",
+    label.y = "top"
+  ) +
+  xlab("Species Richness (# species)") +
+  ylab("Functional Diversity (fdis)") +
+  ggtitle("Linear Regression: FD ~ TD")
 
 #FUSE
 
-mam_traits_IUCN <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_mammal_subset_impute.csv")
+bird_traits_IUCN <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_impute.csv")
 
-mam_traits_IUCN_final<- mam_traits_IUCN %>% filter(IUCN_species_name %in% mam_traits_df_subset$X)
+bird_traits_IUCN_final<- bird_traits_IUCN %>% filter(IUCN_species_name %in% bird_traits_df_subset$X)
 
 
-IUCN_status_mams <- mam_traits_IUCN_final$IUCN_category
-IUCN_index <- lets.iucncont(IUCN_status_mams, dd = .5, ne = NA)
-mam_fuse <- fuse(sp_dist_mam, sp_faxes_coord_mam, GE= IUCN_index,standGE = FALSE) # need numerical vector of IUCN statuses 
-write.csv(mam_fuse, "mam_fuse.csv")
+IUCN_status_birds <- bird_traits_IUCN_final$IUCN_category
+IUCN_index <- lets.iucncont(IUCN_status_birds, dd = .5, ne = NA)
+bird_fuse <- fuse(sp_dist_bird, sp_faxes_coord_bird, GE= IUCN_index,standGE = FALSE) # need numerical vector of IUCN statuses 
+write.csv(bird_fuse, "bird_fuse.csv")
 
 # MAP
 
@@ -419,16 +462,16 @@ study_region_crop <-st_crop(study_region, xmin = -87, xmax = -61, ymin = -25, ym
 
 
 #Richness rasters
-spec_rich_raster_point <- rasterToPoints(spec_rich_raster_mam, spatial = TRUE)
-spec_FD_raster_point <- rasterToPoints(fd_raster_mam, spatial = TRUE)
+spec_rich_raster_point <- rasterToPoints(spec_rich_raster_bird, spatial = TRUE)
+spec_FD_raster_point <- rasterToPoints(fd_raster_bird, spatial = TRUE)
 
 # Convert to a 'conventional' dataframe
 spec_rich_raster_point <- data.frame(spec_rich_raster_point)
 fd_raster_point <- data.frame(spec_FD_raster_point)
 
 # Create a blank map of the Tropical Andes region
-taxonomic_diversity <- ggplot() + theme_bw() + geom_sf(data = study_region_crop, fill = "white") + geom_raster(data=spec_rich_raster_point, aes(x=x, y=y, fill=spec_rich_mam))+ scale_fill_viridis()
-functional_diversity <- ggplot() + theme_bw() + geom_sf(data = study_region_crop, fill = "white") + geom_raster(data=fd_raster_point, aes(x=x, y=y, fill=fdis_mam))+ scale_fill_viridis()
+taxonomic_diversity <- ggplot() + theme_bw() + geom_sf(data = study_region_crop, fill = "white") + geom_raster(data=spec_rich_raster_point, aes(x=x, y=y, fill=spec_rich_bird))+ scale_fill_viridis()
+functional_diversity <- ggplot() + theme_bw() + geom_sf(data = study_region_crop, fill = "white") + geom_raster(data=fd_raster_point, aes(x=x, y=y, fill=fdis_bird))+ scale_fill_viridis()
 
 
 #Add scale
@@ -498,7 +541,7 @@ functional_diversity_final_inset <-ggdraw(functional_diversity_final) +
 
 
 # Create multipanel plot
-mammal_diversity <-grid.arrange(taxonomic_diversity_final_inset, functional_diversity_final_inset, ncol = 2)
+birdmal_diversity <-grid.arrange(taxonomic_diversity_final_inset, functional_diversity_final_inset, ncol = 2)
 
 # Add labels to the grid
 grid.text("Taxonomic Diversity", x = 0.2, y = 0.98, gp = gpar(fontsize = 12, fontface = "bold"))
