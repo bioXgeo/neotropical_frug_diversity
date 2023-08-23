@@ -378,19 +378,66 @@ ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
 
 # Regression
 
-# Perform linear regression
-#reg_model <- lm(fdis_mam ~ spec_rich_mam, data = mam_diversity)
+#Perform linear regression
+reg_model <- lm(fdis_mam ~ spec_rich_mam, data = mam_diversity)
 
 # Print the regression summary
 #summary(reg_model)
 
 #plot mam diversity as a function of species richness ()
+library(ggpmisc)
+ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  stat_poly_eq(
+    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label..,sep = "~~~~")),
+    formula = y ~ x,
+    parse = TRUE,
+    label.x = "right",
+    label.y = "top"
+  ) +
+  xlab("Species Richness (# species)") +
+  ylab("Functional Diversity (fdis)") +
+  ggtitle("Linear Regression: FD ~ TD")
+
+# Perform quadratic polynomial regression
+#reg_model_quad <- lm(fdis_mam ~ spec_rich_mam + I(fdis_mam^2), data = mam_diversity)
+
+# Plot mam diversity with quadratic curve
 #ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
-#  geom_point() +
-#  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-#  xlab("Species Richness (spec_rich_mam)") +
-#  ylab("Functional Diversity (fdis_mam)") +
-#  ggtitle("Linear Regression: fdis_mam ~ spec_rich_mam")
+  # geom_point() +
+  # geom_smooth(method = "lm", formula = y ~ x + I(x^2), se = FALSE, color = "blue") +
+  # stat_poly_eq(
+  #   aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~~")),
+  #   formula = y ~ x,
+  #   parse = TRUE,
+  #   label.x = "right",
+  #   label.y = "top"
+  # ) +
+  # xlab("Species Richness (spec_rich_mam)") +
+  # ylab("Functional Diversity (fdis_mam)") +
+  # ggtitle("Quadratic Regression: fdis_mam ~ spec_rich_mam + spec_rich_mam^2")
+
+
+
+# library(mgcv)
+# full <-cbind(subset_coords_mam_sp, fdis_mam, spec_rich_mam)
+# # Create a GAM model with spatial smooth
+# gam_model <- gam(fdis_mam ~ s(spec_rich_mam) + s(Longitude.x., Latitude.y. ), data =full)
+# 
+# 
+
+
+
+
+
+
+
+
+
+
+
+
 
 #FUSE
 

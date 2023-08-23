@@ -426,7 +426,7 @@ ggplot(bird_diversity, aes(x = spec_rich_bird, y = fdis_bird)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color = "blue") +
   stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~~")),
+    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "~~~~")),
     formula = y ~ x,
     parse = TRUE,
     label.x = "right",
