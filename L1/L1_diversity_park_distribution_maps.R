@@ -32,6 +32,8 @@ raster_points_park_TD_mam <- as.data.frame(rasterToPoints(species_mask_park_TD_m
 mam_td_density <- ggplot() + 
   geom_histogram(aes(x = raster_points_full_TD_mam$Spec_rich_mam_TA, y = ..ncount.., fill = "Spec_rich_mam_TA"), alpha = 0.7, col="red", binwidth = 4) + 
   geom_histogram(aes(x = raster_points_park_TD_mam$Spec_rich_mam_TA, y = ..ncount.., fill = "Extracted Values"), alpha = 0.4, col="darkturquoise", binwidth=4)+
+  geom_vline(xintercept = 71, col = "red", linetype = "dashed") +  # Add a red dashed vertical line
+  
   labs(x = "Taxonomic Diversity", y = "Frequency") +
   scale_fill_manual(name = "TD Comparison", 
                     values = c("darkblue", "lightblue"), 
@@ -68,6 +70,7 @@ raster_points_park_FD_mam <- as.data.frame(rasterToPoints(species_mask_park_FD_m
 mam_fd_density <- ggplot() + 
   geom_histogram(aes(x = raster_points_full_FD_mam$FD_mams_foraging_TA, y = ..ncount.., fill = "FD_mams_foraging_TA"), alpha = 0.7, col="red", binwidth = .0125)+
   geom_histogram(aes(x = raster_points_park_FD_mam$FD_mams_foraging_TA, y = ..ncount.., fill = "Extracted Mean"), alpha = 0.4, col="darkturquoise", binwidth=.0125) +
+  geom_vline(xintercept = 0.69, col = "red", linetype = "dashed") +  # Add a red dashed vertical line
   labs(x = "Functional Diversity", y = "Frequency")  +
   scale_fill_manual(name = "FD Comparison", 
                     values = c("darkblue", "lightblue"), 
@@ -101,7 +104,7 @@ extracted_values_subset_bird_td <-as.data.frame(extracted_values_bird_td[,c("mea
 
 
 # Load the raster of species richness
-species_raster_TD <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/Spec_rich_birds_TA.tif")
+species_raster_bird_TD <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/Spec_rich_birds_TA.tif")
 
 # Mask raster by park 
 species_mask_park_TD <- mask(species_raster_TD, parks)
@@ -114,6 +117,8 @@ raster_points_park_TD <- as.data.frame(rasterToPoints(species_mask_park_TD))
 bird_td_density <- ggplot() + 
   geom_histogram(aes(x = raster_points_full_TD$Spec_rich_birds_TA, y = ..ncount.., fill = "Spec_rich_birds_TA"), alpha = 0.7, col="red", binwidth = 6) + 
   geom_histogram(aes(x = raster_points_park_TD$Spec_rich_birds_TA, y = ..ncount.., fill = "Extracted Values"), alpha = 0.4, col="darkturquoise", binwidth=6)+
+  geom_vline(xintercept = 140, col = "red", linetype = "dashed") +  # Add a red dashed vertical line
+  
   labs(x = "Taxonomic Diversity", y = "Frequency") +
   scale_fill_manual(name = "TD Comparison", 
                     values = c("darkblue", "lightblue"), 
@@ -150,6 +155,7 @@ raster_points_park_FD <- as.data.frame(rasterToPoints(species_mask_park_FD))
 bird_fd_density <- ggplot() + 
   geom_histogram(aes(x = raster_points_full_FD$FD_birds_foraging_TA, y = ..ncount.., fill = "FD_birds_foraging_TA"), alpha = 0.7, col="red", binwidth = .008)+
   geom_histogram(aes(x = raster_points_park_FD$FD_birds_foraging_TA, y = ..ncount.., fill = "Extracted Mean"), alpha = 0.4, col="darkturquoise", binwidth=.008) +
+  geom_vline(xintercept = 0.38, col = "red", linetype = "dashed") +  # Add a red dashed vertical line
   labs(x = "Functional Diversity", y = "Frequency")  +
   scale_fill_manual(name = "FD Comparison", 
                     values = c("darkblue", "lightblue"), 
@@ -184,7 +190,7 @@ circle_map_birds_TD <- ggplot() +
   geom_sf(data = study_region_crop, fill = "white") +
   geom_sf(data= TA_refined, fill="lightgray")+
   geom_sf(data = parks_centroids_bird, aes(fill = TD_bird)) +
-  geom_point(data = parks_centroids_bird, aes(x = st_coordinates(parks_centroids)[, 1], y = st_coordinates(parks_centroids)[, 2], fill = TD_bird),
+  geom_point(data = parks_centroids_bird, aes(x = st_coordinates(parks_centroids_bird)[, 1], y = st_coordinates(parks_centroids_bird)[, 2], fill = TD_bird),
              shape = 21, size = 1.8) +
   labs(title = "Bird TD in Protected Areas") +
   scale_fill_continuous(type = "viridis", name="TD") +
@@ -231,8 +237,8 @@ parks_centroids_bird_fd$FD_bird <- FD_bird
 circle_map_bird_FD <- ggplot() +
   geom_sf(data = study_region_crop, fill = "white") +
   geom_sf(data= TA_refined, fill="lightgray")+
-  geom_sf(data = parks_centroids, aes(fill = FD_bird)) +
-  geom_point(data = parks_centroids_bird_fd, aes(x = st_coordinates(parks_centroids_bird_fd)[, 1], y = st_coordinates(parks_centroids)[, 2], fill = FD_bird),
+  geom_sf(data = parks_centroids_bird_fd, aes(fill = FD_bird)) +
+  geom_point(data = parks_centroids_bird_fd, aes(x = st_coordinates(parks_centroids_bird_fd)[, 1], y = st_coordinates(parks_centroids_bird_fd)[, 2], fill = FD_bird),
              shape = 21, size = 1.8) +
   labs(title = "Bird FD in Protected Areas") + 
   scale_fill_continuous(type = "viridis", name="FD") +
@@ -262,7 +268,7 @@ plot_grid(richness_map_bird_FD,circle_map_bird_FD, ncol=2, align= "hv")
 # Load the raster of species richness
 species_raster_mam_td <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/Spec_rich_mam_TA.tif")
 # Extract the values of species richness at the centroid locations
-extracted_values_mam_td <- exact_extract(species_raster, parks, fun = c("mean"), append_cols = c("IUCN_CAT", "NAME", "GOV_TYPE", "PARENT_ISO", "GIS_AREA"), coverage_area = TRUE)
+extracted_values_mam_td <- exact_extract(species_raster_mam_td, parks, fun = c("mean"), append_cols = c("IUCN_CAT", "NAME", "GOV_TYPE", "PARENT_ISO", "GIS_AREA"), coverage_area = TRUE)
 
 TD_mam <- as.numeric(extracted_values_mam_td$mean)  # Convert to numeric
 
@@ -278,8 +284,8 @@ parks_centroids_mam_td$TD_mam <- TD_mam
 circle_map_mam_TD <- ggplot() +
   geom_sf(data = study_region_crop, fill = "white") +
   geom_sf(data= TA_refined, fill="lightgray")+
-  geom_sf(data = parks_centroids, aes(fill = TD_mam)) +
-  geom_point(data = parks_centroids, aes(x = st_coordinates(parks_centroids)[, 1], y = st_coordinates(parks_centroids)[, 2], fill = TD_mam),
+  geom_sf(data = parks_centroids_mam_td, aes(fill = TD_mam)) +
+  geom_point(data = parks_centroids_mam_td, aes(x = st_coordinates(parks_centroids_mam_td)[, 1], y = st_coordinates(parks_centroids_mam_td)[, 2], fill = TD_mam),
              shape = 21, size = 1.8) +
   labs(title = "Mammal TD in Protected Areas") +
   scale_fill_continuous(type = "viridis", name="TD") +
@@ -324,14 +330,14 @@ sf_use_s2(FALSE)
 # Calculate the centroids of the parks
 parks_centroids_mam_fd <- st_centroid(parks)
 
-parks_centroids_fd_mam$FD_mam <- FD_mam
+parks_centroids_mam_fd$FD_mam <- FD_mam
 
 # Create the map with circles and species richness labels
 circle_map_mam_FD <- ggplot() +
   geom_sf(data = study_region_crop, fill = "white") +
   geom_sf(data= TA_refined, fill="lightgray")+
   geom_sf(data = parks_centroids_mam_fd, aes(fill = FD_mam)) +
-  geom_point(data = parks_centroids_mam_fd, aes(x = st_coordinates(parks_centroids_mam_fd)[, 1], y = st_coordinates(parks_centroids)[, 2], fill = FD_mam), shape = 21, size = 1.8) +
+  geom_point(data = parks_centroids_mam_fd, aes(x = st_coordinates(parks_centroids_mam_fd)[, 1], y = st_coordinates(parks_centroids_mam_fd)[, 2], fill = FD_mam), shape = 21, size = 1.8) +
   scale_fill_continuous(type = "viridis", name="FD")+
   labs(title = "Mammal FD in Protected Areas") +
   scalebar(x.min = -83.5, x.max = -76.5, y.min = -27, y.max = -25.5, dist=400, st.dist=.3, st.size=2.5, height=.5, transform = TRUE, dist_unit = "km", model = 'WGS84') + north(study_region_crop,  location="bottomleft", scale=.065, symbol=1) +   theme(panel.background = element_rect(fill = "aliceblue", color="black"), legend.key.size = unit(.3, 'cm'), legend.key.width = unit(.4, "cm"), legend.justification = c(1, 0), legend.position = c(.30, .14), legend.box.background = element_rect(fill = "white"),    plot.title = element_text(size = 12, hjust = 0.5),  axis.text = element_text(size = 12),    axis.title = element_text(size=12),                                                legend.text = element_text(size = ),  legend.title = element_text(size = 10)) + ylim(-28,12) +xlab("Longitude")+ ylab("Latitude")
@@ -355,4 +361,6 @@ richness_map_mam_FD <- ggplot() +
                                                                                                                                                                                                                                                           
 
 plot_grid(richness_map_mam_FD, circle_map_mam_FD, ncol=2,align="hv")
-test <-richness_map_mam_FD + circle_map_mam_FD + mam_fd_density + richness_map_bird_FD +circle_map_bird_FD + bird_fd_density + layout
+FD <-richness_map_mam_FD + circle_map_mam_FD + mam_fd_density + richness_map_bird_FD +circle_map_bird_FD + bird_fd_density + layout
+
+TD <- richness_map_mam_TD + circle_map_mam_TD + mam_td_density + richness_map_birds_TD +circle_map_birds_TD + bird_td_density + layout

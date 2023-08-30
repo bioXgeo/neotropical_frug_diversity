@@ -102,3 +102,10 @@ frugivoria_bird_TA <- frugivoria_bird%>%
 setwd("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets")
 write.csv(frugivoria_mam_TA, "frugivoria_TA_mammal_subset.csv")
 write.csv(frugivoria_bird_TA, "frugivoria_TA_bird_subset.csv")
+
+# For the final run before publication run with this subset
+test <- frugivoria_bird[frugivoria_bird$habitat == "1" | frugivoria_bird$habitat == "3", ]
+nrow(test)
+test_2 <- frugivoria_mammal[frugivoria_mammal$habitat == "1" | frugivoria_mammal$habitat == "3", ]
+nrow(test_2)
+
