@@ -149,7 +149,8 @@ asb_sp_mam_occ <- asb_sp_mam_summ$"asb_sp_occ"
 asb_sp_mam_summ$"asb_sp_richn"           # Species richness per assemblage
 
 # Names of species present in random assemblage
-asb_sp_mam_summ$"asb_sp_nm"[[200]]   
+asb_sp_mam_summ$"asb_sp_nm"[[8575]] 
+asb_sp_bird_summ$"asb_sp_nm"[[8672]]   
 
 #functional entities
 #FE_mam <-mFD::sp.to.fe(
@@ -357,91 +358,13 @@ spec_rich_raster_mam <- rasterize(spatial_spec_rich_mam, empty_raster)
 setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
 writeRaster(spec_rich_raster_mam$spec_rich_mam, "Spec_rich_TA.tif", format="GTiff",overwrite=T)
 
-
-# Understand relationship between species richness and functional diversity
-library(ggplot2)
-
-# Diversity metrics
-mam_diversity <-  data.frame(spec_rich_mam, fdis_mam)
-
-# Create a scatter plot
-ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
-  geom_point() +
-  xlab("Species Richness") +
-  ylab("Functional Diversity")
-
-# Calculate correlation coefficient
-#correlation_mam_div <- cor(mam_diversity$spec_rich_mam, mam_diversity$fdis_mam)
-
-# Print the correlation coefficient
-#print(correlation)
-
-# Regression
-
-#Perform linear regression
-reg_model <- lm(fdis_mam ~ spec_rich_mam, data = mam_diversity)
-
-# Print the regression summary
-#summary(reg_model)
-
-#plot mam diversity as a function of species richness ()
-library(ggpmisc)
-ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-  stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label..,sep = "~~~~")),
-    formula = y ~ x,
-    parse = TRUE,
-    label.x = "right",
-    label.y = "top"
-  ) +
-  xlab("Species Richness (# species)") +
-  ylab("Functional Diversity (fdis)") +
-  ggtitle("Linear Regression: FD ~ TD")
-
-# Perform quadratic polynomial regression
-#reg_model_quad <- lm(fdis_mam ~ spec_rich_mam + I(fdis_mam^2), data = mam_diversity)
-
-# Plot mam diversity with quadratic curve
-#ggplot(mam_diversity, aes(x = spec_rich_mam, y = fdis_mam)) +
-  # geom_point() +
-  # geom_smooth(method = "lm", formula = y ~ x + I(x^2), se = FALSE, color = "blue") +
-  # stat_poly_eq(
-  #   aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~~")),
-  #   formula = y ~ x,
-  #   parse = TRUE,
-  #   label.x = "right",
-  #   label.y = "top"
-  # ) +
-  # xlab("Species Richness (spec_rich_mam)") +
-  # ylab("Functional Diversity (fdis_mam)") +
-  # ggtitle("Quadratic Regression: fdis_mam ~ spec_rich_mam + spec_rich_mam^2")
-
-
-
-# library(mgcv)
-# full <-cbind(subset_coords_mam_sp, fdis_mam, spec_rich_mam)
-# # Create a GAM model with spatial smooth
-# gam_model <- gam(fdis_mam ~ s(spec_rich_mam) + s(Longitude.x., Latitude.y. ), data =full)
-# 
-# 
-
-
-
-
-
-
-
-
-
-
-
-
+#highest 10% of values
+threshold <- quantile(values(fd_raster_mam$fdis_mam), probs = 0.9, na.rm=T)
+threshold_mam_td <-quantile(values(spec_rich_raster_mam$spec_rich_mam), probs = 0.9, na.rm=T)
 
 #FUSE
 
-mam_traits_IUCN <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/IUCN_statuses.csv")
+mam_traits_IUCN <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv")
 
 mam_traits_IUCN_final<- mam_traits_IUCN %>% filter(IUCN_species_name %in% mam_traits_df_subset$IUCN_species_name)
 
@@ -449,7 +372,7 @@ mam_traits_IUCN_final<- mam_traits_IUCN %>% filter(IUCN_species_name %in% mam_tr
 IUCN_status_mams <- mam_traits_IUCN_final$IUCN_category
 IUCN_index <- lets.iucncont(IUCN_status_mams, dd = .5, ne = NA)
 mam_fuse <- fuse(sp_dist_mam, sp_faxes_coord_mam, GE= IUCN_index,standGE = FALSE) # need numerical vector of IUCN statuses 
-write.csv(mam_fuse, "mam_fuse_foraging.csv")
+write.csv(mam_fuse, "mam_fuse_foraging_test.csv")
 
 # MAP
 

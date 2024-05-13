@@ -109,3 +109,43 @@ nrow(test)
 test_2 <- frugivoria_mammal[frugivoria_mammal$habitat == "1" | frugivoria_mammal$habitat == "3", ]
 nrow(test_2)
 
+FUSE_species_mam <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/mam_fuse_foraging.csv")
+
+# Birds
+FUSE_species_bird <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/bird_fuse_foraging.csv")
+
+#What species are in the FUSE dataset but not in the correctly subsetted dataset
+missing_mam <- FUSE_species_mam %>% filter(!X %in% test_2$IUCN_species_name)#28
+missing_bird <- FUSE_species_bird %>% filter(!X %in% test$IUCN_species_name) #32
+
+missing_mam <- missing_mam[1:28,]
+missing_bird <- missing_bird[1:32,]
+
+species_to_remove <- rbind(missing_mam, missing_bird)
+write.csv(species_to_remove,"FUSE_species_to_remove.csv")
+write.csv(missing_bird,"FUSE_bird_to_remove.csv")
+write.csv(missing_mam,"FUSE_mam_to_remove.csv")
+
+# Endemic
+# For the final run before publication run with this subset
+test <- frugivoria_bird[frugivoria_bird$habitat == "1", ] 
+nrow(test)
+test_2 <- frugivoria_mammal[frugivoria_mammal$habitat == "1", ]
+nrow(test_2)
+mam_in <- FUSE_species_mam %>% filter(X %in% test_2$IUCN_species_name)#42
+bird_in <- FUSE_species_bird %>% filter(X %in% test$IUCN_species_name) #41
+mam_endemic_fuse <- mam_in[1:42,]
+bird_endemic_fuse <- bird_in[1:41,]
+
+FUSE_species_mam_to <- FUSE_species_mam[1,]
+FUSE_species_bird_po <- FUSE_species_bird[1,]
+
+mam_endemic_fuse <- rbind(mam_endemic_fuse, FUSE_species_mam_to) %>%  arrange(desc(FUSE))
+bird_endemic_fuse <- rbind(bird_endemic_fuse, FUSE_species_bird_po)  %>%   arrange(desc(FUSE))
+
+write.csv(mam_endemic_fuse, "mam_endemic_fuse.csv")
+write.csv(bird_endemic_fuse, "bird_endemic_fuse.csv")
+
+#endemic
+84/(86+110)
+

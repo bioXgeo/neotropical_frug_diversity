@@ -436,6 +436,11 @@ ggplot(bird_diversity, aes(x = spec_rich_bird, y = fdis_bird)) +
   ylab("Functional Diversity (fdis)") +
   ggtitle("Linear Regression: FD ~ TD")
 
+#highest 10% of values
+threshold_bird_fd <- quantile(values(fd_raster_bird$fdis_bird), probs = 0.9, na.rm=T)
+threshold_bird_td <-quantile(values(spec_rich_raster_bird$spec_rich_bird), probs = 0.9, na.rm=T)
+
+
 #FUSE
 
 bird_traits_IUCN <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_impute.csv")

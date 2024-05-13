@@ -1,36 +1,24 @@
+#library
+library(sf)
+
 # Community managed lands
+parks <- st_read("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/WDPA_ALL/parks_reserves_forest.shp")
+
+## Proportion of FUSE
 
 local <- parks[parks$GOV_TYPE == c("Local communities"),]
-park_prop_FUSE <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_prop_fuse_frug_per_park.csv")
+park_prop_FUSE <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_prop_FUSE_frug_per_park.csv")
 library(dplyr)
 local_prop_FUSE <- park_prop_FUSE %>% filter(Park %in% local$NAME)
 
-forest_integrity <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_integrity_per_park.csv")
-local_forest <- forest_integrity %>% filter(Park %in% local$NAME)
-
-forest_integrity_man <- mean(local_forest$avg_integrity)
-local_prop_fuse <- mean(local_prop_FUSE$avg_prop_fuse)
 
 #is this higher than other areas?
-not_local_prop_FUSE <- park_prop_FUSE %>% filter(!Park %in% local$NAME)
-not_local_prop_fuse <- mean(not_local_prop_FUSE$avg_prop_fuse)
+not_local_prop_FUSE <- park_prop_FUSE[park_prop_FUSE$Category == c("VI"),]
+not_local_prop_FUSE <- not_local_prop_FUSE %>% filter(!Park %in% local$NAME)
 
-not_local_forest <- forest_integrity %>% filter(!Park %in% local$NAME)
-not_local_forest_integrity_man <- mean(not_local_forest$avg_integrity)
 
-#within VI
-parks_VI <-parks[parks$IUCN_CAT == c("VI"),]
-VI_prop_FUSE <- park_prop_FUSE %>% filter(Park %in% parks_VI$NAME)
-VI_prop_fuse <- mean(VI_prop_FUSE$avg_prop_fuse)
-
-VI_forest <- forest_integrity %>% filter(Park %in% parks_VI$NAME)
-VI_forest_mean <- mean(VI_forest$avg_integrity)
-
-##Community
-local_prop_fuse <- local_prop_FUSE$avg_prop_fuse
-not_local <- not_local_prop_FUSE$avg_prop_fuse
 # Perform Mann-Whitney U test
-local_fuse_result <- wilcox.test(local_prop_fuse, not_local)
+local_fuse_result <- wilcox.test(local_prop_FUSE$avg_prop_fuse, not_local_prop_FUSE$avg_prop_fuse) #not significant
 
 # Check if the p-value is less than your chosen significance level (e.g., 0.05)
 if (bird_fuse_result <-bird_fuse_result$p.value < 0.05) {
@@ -46,26 +34,14 @@ mam_count_FUSE <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapte
 library(dplyr)
 local_mam_count <- mam_count_FUSE %>% filter(Park %in% local$NAME)
 
-forest_integrity <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_integrity_per_park.csv")
-local_forest <- forest_integrity %>% filter(Park %in% local$NAME)
-
-forest_integrity_man <- mean(local_forest$avg_integrity)
-local_mam_count_fuse<- mean(local_mam_count$Avg_FUSE_Species)
 
 #is this higher than other areas?
-not_local_mam_count_FUSE <- mam_count_FUSE %>% filter(!Park %in% local$NAME)
-not_local_mam_count_mean <- mean(not_local_prop_FUSE$avg_prop_fuse)
+not_local_count_FUSE <- mam_count_FUSE[mam_count_FUSE$Category == "VI",]
+not_local_count_FUSE_test <- not_local_count_FUSE %>% filter(!Park %in% local$NAME)
 
-not_local_forest <- forest_integrity %>% filter(!Park %in% local$NAME)
-not_local_forest_integrity_man <- mean(not_local_forest$avg_integrity)
 
-#within VI
-parks_VI <-parks[parks$IUCN_CAT == c("VI"),]
-VI_prop_FUSE <- mam_count_FUSE %>% filter(Park %in% parks_VI$NAME)
-VI_prop_fuse <- mean(VI_prop_FUSE$Avg_FUSE_Species)
+local_fuse_result <- wilcox.test(local_mam_count$Avg_FUSE_Species, not_local_count_FUSE_test$Avg_FUSE_Species) #significant higher outside reserve
 
-VI_forest <- forest_integrity %>% filter(Park %in% parks_VI$NAME)
-VI_forest_mean <- mean(VI_forest$avg_integrity)
 
 
 
@@ -75,26 +51,14 @@ bird_count_FUSE <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapt
 library(dplyr)
 local_bird_count <- bird_count_FUSE %>% filter(Park %in% local$NAME)
 
-forest_integrity <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_integrity_per_park.csv")
-local_forest <- forest_integrity %>% filter(Park %in% local$NAME)
-
-forest_integrity_man <- mean(local_forest$avg_integrity)
-local_bird_count_fuse<- mean(local_bird_count$Avg_FUSE_Species)
-
 #is this higher than other areas?
-not_local_mam_count_FUSE <- mam_count_FUSE %>% filter(!Park %in% local$NAME)
-not_local_mam_count_mean <- mean(not_local_prop_FUSE$avg_prop_fuse)
+not_local_count_FUSE <- bird_count_FUSE[bird_count_FUSE$Category == "VI",]
+not_local_count_FUSE_test <- not_local_count_FUSE %>% filter(!Park %in% local$NAME) # not significant
 
-not_local_forest <- forest_integrity %>% filter(!Park %in% local$NAME)
-not_local_forest_integrity_man <- mean(not_local_forest$avg_integrity)
+local_fuse_result <- wilcox.test(local_bird_count$Avg_FUSE_Species, not_local_count_FUSE_test$Avg_FUSE_Species)
 
-#within VI
-parks_VI <-parks[parks$IUCN_CAT == c("VI"),]
-VI_prop_FUSE <- bird_count_FUSE %>% filter(Park %in% parks_VI$NAME)
-VI_prop_fuse <- mean(VI_prop_FUSE$Avg_FUSE_Species)
 
-VI_forest <- forest_integrity %>% filter(Park %in% parks_VI$NAME)
-VI_forest_mean <- mean(VI_forest$avg_integrity)
+
 
 # Diversity comparison
 bird_count_FUSE <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_fuse_per_park_birds_foraging.csv")
@@ -115,6 +79,127 @@ if (bird_fuse_result <-bird_fuse_result$p.value < 0.05) {
 } else {
   cat("There is no statistically significant difference in FD between strict and non-strict categories./n")
 }
+
+## FD and TD comparisons community or not
+# FD, birds
+library(sf)
+# Load the shapefile of parks (forest only)
+parks <- st_read("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/WDPA_ALL/parks_reserves_forest.shp")
+local <- parks[parks$GOV_TYPE == c("Local communities"),]
+park_FD_birds <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_fd_per_park_birds_foraging.csv")
+
+library(dplyr)
+local_prop_FD <- park_FD_birds %>% filter(Park %in% local$NAME)
+
+
+
+#is this higher than other areas?
+not_local_prop_FD <- park_FD_birds[park_FD_birds$Category == c("VI"),]
+not_local_FD <- not_local_prop_FD  %>% filter(!Park %in% local$NAME)
+
+
+
+# Perform Mann-Whitney U test
+local_FD_result <- wilcox.test(local_prop_FD$Avg_fd_birds, not_local_FD$Avg_fd_birds) # higher in community managed
+
+# Check if the p-value is less than your chosen significance level (e.g., 0.05)
+if (bird_FD_result <-bird_FD_result$p.value < 0.05) {
+  cat("The difference in FD between strict and non-strict categories is statistically significant./n")
+} else {
+  cat("There is no statistically significant difference in FD between strict and non-strict categories./n")
+}
+
+####
+# FOREST
+forest_integrity <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_integrity_per_park.csv")
+local_forest <- forest_integrity %>% filter(Park %in% local$NAME)
+not_local_forest <- forest_integrity[forest_integrity$Category == c("VI"),]
+not_local_forest <- not_local_forest %>% filter(!Park %in% local$NAME)
+
+
+forest_integrity_man <- mean(local_forest$avg_integrity)
+local_forest_result <- wilcox.test(local_forest$avg_integrity, not_local_forest$)
+
+#MAMMALS
+# FD
+library(sf)
+# Load the shapefile of parks (forest only)
+parks <- st_read("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/WDPA_ALL/parks_reserves_forest.shp")
+local <- parks[parks$GOV_TYPE == c("Local communities"),]
+park_FD_mams <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_fd_per_park_mams_foraging.csv")
+
+library(dplyr)
+local_prop_FD <- park_FD_mams %>% filter(Park %in% local$NAME)
+
+
+#is this higher than other areas?
+not_local_prop_FD <- park_FD_mams[park_FD_mams$Category == c("VI"),]
+not_local_prop_FD <- not_local_prop_FD %>% filter(!Park %in% local$NAME)
+
+# Perform Mann-Whitney U test
+local_FD_result <- wilcox.test(local_prop_FD$Avg_fd_mams, not_local_prop_FD$Avg_fd_mams)#significantly higher in community ~5% increase
+
+# Check if the p-value is less than your chosen significance level (e.g., 0.05)
+if (mam_FD_result <-mam_FD_result$p.value < 0.05) {
+  cat("The difference in FD between strict and non-strict categories is statistically significant./n")
+} else {
+  cat("There is no statistically significant difference in FD between strict and non-strict categories./n")
+}
+
+## TD  birds
+# TD
+library(sf)
+# Load the shapefile of parks (forest only)
+parks <- st_read("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/WDPA_ALL/parks_reserves_forest.shp")
+local <- parks[parks$GOV_TYPE == c("Local communities"),]
+park_TD_birds <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_TD_per_park_birds_foraging.csv")
+
+library(dplyr)
+local_prop_TD <- park_TD_birds %>% filter(Park %in% local$NAME)
+
+
+
+#is this higher than other areas?
+not_local_prop_TD <- park_TD_birds[park_TD_birds$Category == c("VI"),]
+not_local_prop_TD <- not_local_prop_TD %>% filter(!Park %in% local$NAME)
+
+
+# Perform Mann-Whitney U test
+local_TD_result <- wilcox.test(local_prop_TD$Avg_td_birds, not_local_prop_TD$Avg_td_birds)
+
+# Check if the p-value is less than your chosen significance level (e.g., 0.05)
+if (bird_TD_result <-bird_TD_result$p.value < 0.05) {
+  cat("The difference in TD between strict and non-strict categories is statistically significant./n")
+} else {
+  cat("There is no statistically significant difference in TD between strict and non-strict categories./n")
+}
+
+## TD mammals
+# TD
+library(sf)
+# Load the shapefile of parks (forest only)
+parks <- st_read("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/WDPA_ALL/parks_reserves_forest.shp")
+local <- parks[parks$GOV_TYPE == c("Local communities"),]
+park_TD_mams <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/avg_TD_per_park_mams_foraging.csv")
+
+library(dplyr)
+local_prop_TD <- park_TD_mams %>% filter(Park %in% local$NAME)
+
+#is this higher than other areas?
+not_local_prop_TD <- park_TD_mams[park_TD_mams$Category == c("VI"),]
+not_local_prop_TD <- not_local_prop_TD %>% filter(!Park %in% local$NAME)
+
+
+# Perform Mann-Whitney U test
+local_TD_result <- wilcox.test(local_prop_TD$Avg_td_mams, not_local_prop_TD$Avg_td_mams) #significantly different outside community
+
+# Check if the p-value is less than your chosen significance level (e.g., 0.05)
+if (mam_TD_result <-mam_TD_result$p.value < 0.05) {
+  cat("The difference in TD between strict and non-strict categories is statistically significant./n")
+} else {
+  cat("There is no statistically significant difference in TD between strict and non-strict categories./n")
+}
+
 
 # Mammals
 # Diversity comparison
