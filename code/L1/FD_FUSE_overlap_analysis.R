@@ -68,10 +68,7 @@ bird_fuse_fd_count <-length(bird_fuse_fd_cells$FD_birds_foraging_TA)
 # Calculate the overlap area
 all_bird_fuse_fd_area <- bird_fuse_fd_count * (cell_resolution) # 208,712
 
-# percent overlapping out of all areas above 10% 
-bird_fuse_fd_overlap_area/all_bird_fuse_fd_area #7.8% of all the areas of high FD and high FUSE species this is what overlaps
-
-## mammals
+# percent overlapping out of all areas above  
 # Read the SR binary raster
 FUSE_mam <- rast(FUSE_file_mammals)
 
