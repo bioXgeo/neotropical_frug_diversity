@@ -14,7 +14,6 @@ Michigan State University
 ## Collaborators
 - Beth E. Gerstner, Ph.D (Michigan State University). Current Postion: Staff scientist, Yale University
 - Phoebe L. Zarnetske, Ph.D.: PI, [Michigan State University Spatial & Community Ecology Lab (SpaCE Lab)](http://www.communityecologylab.com)
-- Pat Bills, MSU Data Scientist
 
 ## Directories
 
