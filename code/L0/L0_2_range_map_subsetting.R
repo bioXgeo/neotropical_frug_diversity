@@ -29,18 +29,18 @@ library(BAMMtools)
 
 
 # Read in all range maps from IUCN (2022) for mammals
-mam_shp <- st_read("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/IUCN_mammal_shape/MAMMALS_TERRESTRIAL_ONLY.shp")
+mam_shp <- st_read("PLACEHOLDER_PATH/datasets/IUCN_mammal_shape/MAMMALS_TERRESTRIAL_ONLY.shp")
 # Change species name column to match species list
 colnames(mam_shp)[2] <- "IUCN_species_name"
 
 # Read in all range maps for BirdLife International (2022) - subsetted to species of interest in MSU's HPC
-bird_shp <-st_read("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/BOTW_subset.shp")
+bird_shp <-st_read("PLACEHOLDER_PATH/datasets/BOTW_subset.shp")
 colnames(bird_shp)[2] <- "IUCN_species_name"
 
 ## Tropical Andes subsetting 
 #read in Tropical Andes species lists
-mammal_list <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_mammal_subset_final_elevation.csv")
-bird_list <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_final.csv")
+mammal_list <- read.csv("/PLACEHOLDER_PATH/atasets/frugivoria_TA_mammal_subset_final_elevation.csv")
+bird_list <- read.csv("PLACEHOLDER_PATH/datasets/frugivoria_TA_bird_subset_final.csv")
 
 #Subset mammal shapefile to Tropical Andes species list
 mam_TA_shp <- mam_shp %>% filter(IUCN_species_name %in% mammal_list$IUCN_species_name)
@@ -134,7 +134,7 @@ er <- raster(er)
 birds_union_multi <-st_cast(birds_union, "GEOMETRY") %>% st_cast("MULTIPOLYGON")
 
 
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/")
+setwd("PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/")
 
 # fasterize can only handle rasterizing 15 rows at a time
 # Define the chunk size
@@ -174,8 +174,8 @@ study_region <- worldMap %>% filter(sovereignt == "Ecuador" | sovereignt == "Col
 # MAMMALS
 
 # Set the paths
-input_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters"
-output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/"
+input_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters"
+output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/"
 shapefile <- "study_region.shp"
 
 # Get the list of raster files
@@ -200,8 +200,8 @@ for (file in raster_files) {
 #BIRDS
 
 # Set the paths
-input_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/"
-output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/"
+input_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/"
+output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/"
 shapefile <- "study_region.shp"
 
 # Get the list of raster files
@@ -226,13 +226,13 @@ for (file in raster_files) {
 ## Elevation range mask
 
 #Define input and output folders
-input_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip"
-output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/elev_mask"
-srtm_filename <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/srtm_1km.tif"
+input_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip"
+output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/elev_mask"
+srtm_filename <- "PLACEHOLDER_PATH/datasets/srtm_1km.tif"
 
 srtm <- raster(srtm_filename)
 # Read the mammal traits dataframe
-mam_traits <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_subsets/frugivoria_TA_mammal_subset_subs_rm.csv")  # Replace with the actual filename and pathnsme
+mam_traits <- read.csv("PLACEHOLDER_PATH/datasets/tropical_subsets/frugivoria_TA_mammal_subset_subs_rm.csv")  # Replace with the actual filename and pathnsme
 
 
 # Loop over each species in the mammal traits dataframe
@@ -286,12 +286,12 @@ for (i in 1:nrow(mam_traits)) {
 # BIRDS
 
 #Define input and output folders
-input_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip"
-output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/elev_mask"
+input_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip"
+output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/elev_mask"
 srtm <- raster(srtm_filename)
 
 # Read the bird traits dataframe
-bird_traits <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_final_elevation.csv")  # Replace with the actual filename and path
+bird_traits <- read.csv("PLACEHOLDER_PATH/datasets/frugivoria_TA_bird_subset_final_elevation.csv")  # Replace with the actual filename and path
 
 # Loop over each species in the bird traits dataframe
 for (i in 1:nrow(bird_traits)) {
@@ -346,10 +346,10 @@ for (i in 1:nrow(bird_traits)) {
 # MAMMALS
 
 # Set the paths and filenames
-input_folder <-"/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/elev_mask"
-output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/AOH_final_mam"
-habitat_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/IUCN_habitat_layers/"
-habitat_all_species <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_subsets/habitat_all_species.csv")
+input_folder <-"PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/elev_mask"
+output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/AOH_final_mam"
+habitat_folder <- "PLACEHOLDER_PATH/datasets/IUCN_habitat_layers/"
+habitat_all_species <- read.csv("PLACEHOLDER_PATH/datasets/tropical_subsets/habitat_all_species.csv")
 
 # Get the list of species raster files
 species_rasters <- list.files(input_folder, pattern = ".tif$", full.names = TRUE)
@@ -410,10 +410,10 @@ for (species_raster_file in species_rasters) {
 # BIRDS
 
 # Set the paths and filenames
-input_folder <-"/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/elev_mask"
-output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/AOH_final_bird"
-habitat_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/IUCN_habitat_layers/"
-habitat_all_species <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_subsets/habitat_all_species.csv")
+input_folder <-"PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/elev_mask"
+output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/AOH_final_bird"
+habitat_folder <- "PLACEHOLDER_PATH/datasets/IUCN_habitat_layers/"
+habitat_all_species <- read.csv("PLACEHOLDER_PATH/datasets/tropical_subsets/habitat_all_species.csv")
 
 # Get the list of species raster files
 species_rasters <- list.files(input_folder, pattern = ".tif$", full.names = TRUE)
