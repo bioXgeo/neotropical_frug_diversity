@@ -86,7 +86,7 @@ er <- raster(er)
 mammals_union_multi <-st_cast(mammals_union, "GEOMETRY") %>% st_cast("MULTIPOLYGON")
 
 # set working directory for where you want output saved
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/mammal_rasters/")
+setwd("PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/")
 
 # fasterize can only handle rasterizing 15 rows at a time
 # Define the chunk size
