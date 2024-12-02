@@ -1,97 +1,71 @@
+# Title: Lollipop and Bar Plot of FUSE Species and Forest Integrity in Protected Areas
+# Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
+#          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
+# Author: Beth E. Gerstner
+# Collaborators: Phoebe L. Zarnetske
+# Overview: This script processes biodiversity metrics (FUSE, FD, TD) and forest integrity for protected areas 
+#           in the Tropical Andes. It calculates averages and standard deviations for biodiversity metrics 
+#           and forest integrity across IUCN protected area categories. The script also generates visualizations 
+#           to compare biodiversity metrics and forest integrity scores by category.
+# Outputs: 
+#   - Combined statistics table with biodiversity metrics and forest integrity values
+#   - Visualization of average FUSE species counts with error bars
+#   - Visualization of forest integrity scores with error bars
+
+# Date: September 1, 2023
+
 
 # Load the necessary libraries
 library(raster)
-library(rasterVis)
-library(raster)
-library(dplyr)
-library(raster)
-library(maps)
-library(ggplot2)
-library(tmap)
-library(rnaturalearth)
-library(leaflet)
-library(ggsn)
-library(rgeos)
-library(BAMMtools)
-library(viridis)
-library(cowplot)
 library(sf)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(RColorBrewer)
+library(patchwork)
+library(exactextractr)
+
+# Load Tropical Andes subsets (generated in L0_0)
+frugivoria_mam_TA <- read.csv("PLACEHOLDER_PATH/frugivoria_TA_mammal_subset.csv")
+frugivoria_bird_TA <- read.csv("PLACEHOLDER_PATH/frugivoria_TA_bird_subset.csv")
+
+# Load FUSE species files 
+FUSE_species_mam <- read.csv("PLACEHOLDER_PATH/mam_fuse_foraging.csv")
+FUSE_species_bird <- read.csv("PLACEHOLDER_PATH/bird_fuse_foraging.csv")
+
+# Identify montane-only species (habitat = 1)
+endemic_mammals <- frugivoria_mam_TA %>%
+  filter(habitat == "1") %>%
+  pull(IUCN_species_name)
+
+endemic_birds <- frugivoria_bird_TA %>%
+  filter(habitat == "1") %>%
+  pull(IUCN_species_name)
+
+# Ensure `Tremarctos ornatus` and `Pauxi unicornis` are included/minor habitat correction in Frugivoria dataset
+manual_additions_mammals <- c("Tremarctos ornatus")
+manual_additions_birds <- c("Pauxi unicornis")
+
+# Remove `Lagothrix lagothricha` from mammals
+endemic_mammals <- endemic_mammals[!endemic_mammals %in% "Lagothrix lagothricha"]
+endemic_mammals <- unique(c(endemic_mammals, manual_additions_mammals))
+endemic_birds <- unique(c(endemic_birds, manual_additions_birds))
+
+# Filter FUSE species for endemic species
+mam_endemic_fuse <- FUSE_species_mam %>%
+  filter(X %in% endemic_mammals) %>%
+  arrange(desc(FUSE))
+
+bird_endemic_fuse <- FUSE_species_bird %>%
+  filter(X %in% endemic_birds) %>%
+  arrange(desc(FUSE))
+
+# Write endemic FUSE subsets to files
+write.csv(mam_endemic_fuse, "mam_endemic_fuse.csv", row.names = FALSE)
+write.csv(bird_endemic_fuse, "bird_endemic_fuse.csv", row.names = FALSE)
 
 
-# Pull in world map
-worldMap <- ne_countries(scale = "medium", type = "countries", returnclass = "sf")
-
-# Subset world map. In this case we are removing the Galapagos by defining the bounding box around the Ecuador polygon.
-study_region <- worldMap %>% filter(continent == "South America" | continent== "North America")
-study_region_crop <- worldMap %>% filter(sovereignt == "Colombia" | sovereignt == "Peru" | sovereignt == "Bolivia" | sovereignt == "Venezuela"| sovereignt == "Ecuador")
-
-TA <- read_sf("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets/Tropical_Andes_shape.shp")
-
-TA_refined <- st_intersection(TA, study_region_crop)
-
-# Crop the study region to the bounding box of interest
-study_region_crop <-st_crop(study_region, xmin = -87, xmax = -61, ymin = -29, ymax = 13)
-
-
-
-
-create_lollipop_plot <- function(FUSE_species_file, IUCN_status_file) {
-  library(ggplot2)
-  
-  # Read the FUSE_species data and sort it to get the top ten species
-  FUSE_species <- read.csv(FUSE_species_file)
-  FUSE_species_sort <- head(arrange(FUSE_species, desc(FUSE)), 10)
-  
-  # Rename the column "X" to "IUCN_species_name"
-  colnames(FUSE_species_sort)[which(names(FUSE_species_sort) == "X")] <- "IUCN_species_name"
-  
-  # Make the "IUCN_species_name" column the first column in the data frame
-  FUSE_species_sort <- cbind(IUCN_species_name = FUSE_species_sort$IUCN_species_name, FUSE_species_sort[-which(names(FUSE_species_sort) == "IUCN_species_name")])
-  
-  # Read the IUCN_status data
-  IUCN_status <- read.csv(IUCN_status_file)
-  
-  # Merge FUSE_species_sort with IUCN_status by "IUCN_species_name"
-  FUSE_species_status <- merge(FUSE_species_sort, IUCN_status, by = "IUCN_species_name")
-  
-  # Define colors for threat status
-  threat_colors <- c("EN" = "red", "VU" = "orange", "CR" = "darkred", "LC" = "green")
-  
-  # Create the lollipop graph with larger text and smaller plot size
-  lollipop_plot <- ggplot(FUSE_species_status, aes(x = FUSE, y = reorder(IUCN_species_name, FUSE))) +
-    geom_segment(aes(xend = 0, yend = IUCN_species_name), color = "gray50") +
-    geom_point(size = 4, aes(color = IUCN_category, shape = IUCN_category)) +
-    scale_color_manual(values = threat_colors) +
-    scale_shape_manual(values = c(16, 17, 15, 18)) +
-    labs(x = "FUSE Score", y = NULL, title = "Top Ten Species by FUSE Score",
-         subtitle = "Threat Status indicated by color and shape") +
-    theme_minimal() +
-    theme(axis.title.y = element_blank(),
-          legend.position = "bottom",
-          legend.title = element_blank(),
-          legend.spacing = unit(0.2, "cm"),
-          legend.text = element_text(size = 12),  # Increase legend text size
-          panel.grid.major.y = element_blank(),
-          text = element_text(size = 14),  # Increase all other text size
-          plot.margin = unit(c(1, 1, 1, 1), "cm"))  # Set smaller plot margins
-  
-  # Return the lollipop plot
-  return(lollipop_plot)
-}
-
-# Mammals
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/mam_fuse_foraging.csv"
-IUCN_status_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv"
-lollipop_plot <- create_lollipop_plot(FUSE_species_file, IUCN_status_file)
-print(lollipop_plot)
-
-# Birds
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/bird_fuse_foraging.csv"
-IUCN_status_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv"
-lollipop_plot <- create_lollipop_plot(FUSE_species_file, IUCN_status_file)
-print(lollipop_plot)
-
-#GGDOT
+#Function to create the lollipop plot of endemic species
 create_ggdotchart <- function(FUSE_species_file, IUCN_status_file) {
   library(ggplot2)
   library(ggpubr)
@@ -147,52 +121,14 @@ create_ggdotchart <- function(FUSE_species_file, IUCN_status_file) {
 }
 
 # Mammals
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/mam_fuse_foraging.csv"
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets/mam_endemic_fuse_fixed.csv"
+
+FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets/mam_endemic_fuse.csv"
 IUCN_status_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv"
 dotchart_mammals <- create_ggdotchart(FUSE_species_file, IUCN_status_file)
 print(dotchart_mammals)
-
-FUSE_all <-read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/mam_fuse_foraging.csv")
-FUSE_species_sort <- head(arrange(FUSE_all, desc(FUSE)), 86)
-FUSE_names <- FUSE_species_sort$X
-FUSE_species_sort$IUCN_species_name <- FUSE_names
-frugivoria_mammal <- read.csv("G:/Shared drives/SpaCE_Lab_neotropical_frugivores/Manuscripts/Database_Manuscript/Database_paper/EDI_resubmission_2023/databases_2023/Frugivoria_mammal_database_2023_full.csv")
-frugivoria_mammal_montane <- frugivoria_mammal[frugivoria_mammal$habitat==1 | frugivoria_mammal$habitat==3, ]
-
-FUSE_subset <-merge(FUSE_species_sort, frugivoria_mammal_montane, by="IUCN_species_name")
-FUSE_subset <- FUSE_subset[,c("IUCN_species_name","FUSE")]
-FUSE_subset_organized_mammals <- head(arrange(FUSE_subset, desc(FUSE)), 43)
-setwd("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness")
-write.csv(FUSE_subset_organized_mammals,"FUSE_species_organized_mammals.csv")
-
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FUSE_species_organized_mammals.csv"
-dotchart_mammals <- create_ggdotchart(FUSE_species_file, IUCN_status_file)
-print(dotchart_mammals)
-
-
 
 # Birds
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/bird_fuse_foraging.csv"
-IUCN_status_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv"
 FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets/bird_endemic_fuse.csv"
-frugivoria_bird <- read.csv("G:/Shared drives/SpaCE_Lab_neotropical_frugivores/Manuscripts/Database_Manuscript/Database_paper/EDI_resubmission_2023/databases_2023/Frugivoria_bird_database_2023_full_1.csv")
-
-FUSE_all <-read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/bird_fuse_foraging.csv")
-FUSE_species_sort <- head(arrange(FUSE_all, desc(FUSE)), 86)
-FUSE_names <- FUSE_species_sort$X
-FUSE_species_sort$IUCN_species_name <- FUSE_names
-
-frugivoria_bird_montane <- frugivoria_bird[frugivoria_bird$habitat==1 | frugivoria_bird$habitat==3, ]
-
-FUSE_subset <-merge(FUSE_species_sort, frugivoria_bird_montane, by="IUCN_species_name")
-FUSE_subset <- FUSE_subset[,c("IUCN_species_name","FUSE")]
-FUSE_subset_organized_bird <- head(arrange(FUSE_subset, desc(FUSE)), 60)
-setwd("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness")
-write.csv(FUSE_subset_organized_bird,"FUSE_species_organized_birds.csv")
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FUSE_species_organized_birds.csv"
-
-
 dotchart_birds <- create_ggdotchart(FUSE_species_file, IUCN_status_file)
 print(dotchart_birds)
 
@@ -200,42 +136,150 @@ plot_grid(dotchart_mammals, dotchart_birds, ncol=2, align=c("hv"))
 
 #FUSE bar plots
 
-fuse_stats <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FUSE_stats_format.csv")
-fuse_stats$Category <- as.factor(fuse_stats$Category)
+# Initialize the final stats table
+# Initialize the final stats table
+combined_stats <- data.frame(
+  Category = character(),
+  X..parks.in.category = numeric(),
+  Taxa = character(),
+  Metric = character(),
+  count_avg = numeric(),
+  count_sd = numeric(),
+  stringsAsFactors = FALSE
+)
 
-ggplot(fuse_stats, aes(x = Category, y = fuse_count_avg, fill = taxa)) +
-  geom_col(position = position_dodge()) +
-  scale_fill_manual(values = c("deepskyblue2", "coral2")) +
-  # geom_text(aes(label = fuse_count_avg), position = position_dodge(0.9), vjust = 1, size = 4, color = "black") +
-  geom_errorbar(aes(ymin = as.numeric(fuse_count_avg) - as.numeric(fuse_count_sd),
-                    ymax = as.numeric(fuse_count_avg) + as.numeric(fuse_count_sd)),
-                width = 0.1,
-                position = position_dodge(0.9), color="black") +
-  labs(y = "Average FUSE Species Count") + xlab("IUCN protected area Category") # Update y-axis label
+# Forest integrity statistics
+forest_stats <- data.frame(
+  Category = character(),
+  X..parks.in.category = numeric(),
+  Forest_integrity_avg = numeric(),
+  Forest_integrity_sd = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# Define file paths
+parks_reserves_path <- "C:/Users/bgers/Desktop/testing/WDPA/WDPA_merged_TA.shp"
+tropical_andes_path <- "C:/Users/bgers/Desktop/testing/TA/Tropical_Andes_shape.shp"
+forest_integrity_path <- "C:/Users/bgers/Desktop/testing/forest_integrity_TA.tif"
+
+# Read shapefiles and forest integrity raster
+parks_reserves <- st_read(parks_reserves_path)
+tropical_andes <- st_read(tropical_andes_path)
+forest_integrity_raster <- raster(forest_integrity_path)
+
+# Define biodiversity metrics and their raster paths
+metrics <- c("FUSE", "FD", "TD")
+metric_paths <- list(
+  FUSE = list(
+    mammals = "C:/Users/bgers/Desktop/testing/FUSE/FUSE_species_masked_TA_mam_foraging.tif",
+    birds = "C:/Users/bgers/Desktop/testing/FUSE/FUSE_species_masked_TA_birds_foraging.tif"
+  ),
+  FD = list(
+    mammals = "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FD_mams_foraging_TA.tif",
+    birds = "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FD_birds_foraging_TA.tif"
+  ),
+  TD = list(
+    mammals = "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/Spec_rich_mam_TA.tif",
+    birds = "C:/Users/bgers/Desktop/testing/FUSE/FUSE_species_masked_TA_birds_foraging.tif"
+  )
+)
+
+# Calculate biodiversity metrics
+for (metric in metrics) {
+  for (taxa in c("mammals", "birds")) {
+    # Load the raster for the current metric and taxa
+    metric_raster <- raster(metric_paths[[metric]][[taxa]])
+    
+    for (category in unique(parks_reserves$IUCN_CAT)) {
+      # Subset parks by category
+      subset_parks <- parks_reserves[parks_reserves$IUCN_CAT == category, ]
+      
+      # Extract metric values
+      metric_values <- exact_extract(metric_raster, subset_parks, fun = "mean")
+      metric_values <- metric_values[!is.na(metric_values)]
+      
+      # Calculate biodiversity metric statistics
+      count_avg <- if (length(metric_values) > 0) mean(metric_values) else NA
+      count_sd <- if (length(metric_values) > 0) sd(metric_values) else NA
+      
+      # Count parks in this category
+      num_parks <- nrow(subset_parks)
+      
+      # Add biodiversity metric stats to the table
+      combined_stats <- rbind(
+        combined_stats,
+        data.frame(
+          Category = category,
+          X..parks.in.category = num_parks,
+          Taxa = taxa,
+          Metric = metric,
+          count_avg = round(count_avg, 2),
+          count_sd = round(count_sd, 2)
+        )
+      )
+    }
+  }
+}
+
+# Calculate forest integrity statistics
+for (category in unique(parks_reserves$IUCN_CAT)) {
+  # Subset parks by category
+  subset_parks <- parks_reserves[parks_reserves$IUCN_CAT == category, ]
+  
+  # Extract forest integrity values
+  integrity_values <- exact_extract(forest_integrity_raster, subset_parks, fun = "mean")
+  integrity_values <- integrity_values[!is.na(integrity_values)]
+  
+  # Calculate forest integrity statistics
+  avg_forest_integrity <- if (length(integrity_values) > 0) mean(integrity_values) else NA
+  sd_forest_integrity <- if (length(integrity_values) > 0) sd(integrity_values) else NA
+  
+  # Count parks in this category
+  num_parks <- nrow(subset_parks)
+  
+  # Add forest integrity stats to the table
+  forest_stats <- rbind(
+    forest_stats,
+    data.frame(
+      Category = category,
+      X..parks.in.category = num_parks,
+      Forest_integrity_avg = round(avg_forest_integrity, 2),
+      Forest_integrity_sd = round(sd_forest_integrity, 2)
+    )
+  )
+}
+
+# Transform biodiversity metrics to wide format
+metrics_stats <- combined_stats %>%
+  pivot_wider(
+    names_from = Metric,
+    values_from = c(count_avg, count_sd),
+    names_sep = "_"
+  )
+
+# Combine biodiversity metrics and forest integrity stats
+combined_stats <- metrics_stats %>%
+  left_join(forest_stats, by = c("Category", "X..parks.in.category")) %>%
+  mutate(Category = factor(Category, levels = c("Ib", "II", "III", "IV", "V", "VI", "Not Applicable", "Not Assigned", "Not Reported"))) %>%
+  na.omit()
+
+# Save the final table to a CSV file
+write.csv(combined_stats, "combined_stats_with_forest_integrity.csv", row.names = FALSE)
 
 
-library(ggplot2)
-
-# Read the CSV data
-fuse_stats <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FUSE_stats_format.csv")
-
-# Convert Category to a factor
-fuse_stats$Category <- factor(fuse_stats$Category, levels = c("Ib","II","III","IV","V","VI","Not Applicable","Not Assigned","Not Reported"))
-
-
-# Round the average FUSE species count and standard deviation to two decimal places
-fuse_stats$fuse_count_avg <- round(as.numeric(fuse_stats$fuse_count_avg), 2)
-fuse_stats$fuse_count_sd <- round(as.numeric(fuse_stats$fuse_count_sd), 2)
+# Ensure fuse_count_avg and fuse_count_sd are numeric
+combined_stats$count_avg_FUSE<- as.numeric(combined_stats$count_avg_FUSE)
+combined_stats$count_sd_FUSE <- as.numeric(combined_stats$count_sd_FUSE)
 
 # Calculate the ymin values for the error bars (taking the maximum of 0 and avg - sd)
-fuse_stats$ymin <- pmax(fuse_stats$fuse_count_avg - fuse_stats$fuse_count_sd, 0)
+combined_stats$ymin <- pmax(combined_stats$count_avg_FUSE - combined_stats$count_sd_FUSE, 0)
 
 # Plot the data
-plot_1 <-ggplot(fuse_stats, aes(x = Category, y = fuse_count_avg, fill = Taxa)) +
+plot_1 <-ggplot(combined_stats, aes(x = Category, y = count_avg_FUSE, fill = Taxa)) +
   geom_col(position = position_dodge()) +
   scale_fill_manual(values = c("lightcoral", "lightseagreen")) +
   geom_errorbar(aes(ymin = ymin,
-                    ymax = fuse_count_avg + as.numeric(fuse_count_sd)),
+                    ymax = count_avg_FUSE + as.numeric(count_sd_FUSE)),
                 width = 0.2,
                 position = position_dodge(0.9),
                 color = "black") +
@@ -253,21 +297,19 @@ plot_1 <-ggplot(fuse_stats, aes(x = Category, y = fuse_count_avg, fill = Taxa)) 
 #protected area type and forest integrity
 
 
-fuse_stats$Forest_integrity_index <- round(as.numeric(fuse_stats$Forest_integrity_index), 2)
-fuse_stats$FII_sd <- round(as.numeric(fuse_stats$FII_sd), 2)
+combined_stats$Forest_integrity_avg <- round(as.numeric(combined_stats$Forest_integrity_avg), 2)
+combined_stats$Forest_integrity_sd <- round(as.numeric(combined_stats$Forest_integrity_sd), 2)
 
 # Calculate the ymin values for the error bars (taking the maximum of 0 and avg - sd)
-fuse_stats$ymin <- pmax(fuse_stats$Forest_integrity_index - fuse_stats$FII_sd, 0)
+combined_stats$ymin <- pmax(combined_stats$Forest_integrity_avg - combined_stats$Forest_integrity_sd, 0)
 
 # Pl
-
-library(RColorBrewer)
 # Plot the data
-plot_2 <-ggplot(fuse_stats, aes(x = Category, y = Forest_integrity_index, fill = Category)) + scale_fill_manual(values = c("Ib"="Firebrick", "II"="red", "III"= "darkorange3", "IV"="darkorange","V"="goldenrod","VI"="gold","Not Applicable" = "grey51", "Not Assigned" = "grey", "Not Reported" = "lightgrey")) +
+plot_2 <-ggplot(combined_stats, aes(x = Category, y = Forest_integrity_avg, fill = Category)) + scale_fill_manual(values = c("Ib"="Firebrick", "II"="red", "III"= "darkorange3", "IV"="darkorange","V"="goldenrod","VI"="gold","Not Applicable" = "grey51", "Not Assigned" = "grey", "Not Reported" = "lightgrey")) +
   geom_col(position = position_dodge()) +
   # geom_text(aes(label = X..protected areas.in.category), position = position_dodge(.9), vjust = 25, size = 5, color = "darkblue") +
   geom_errorbar(aes(ymin = ymin,
-                    ymax = Forest_integrity_index + as.numeric(FII_sd)),
+                    ymax = Forest_integrity_avg + as.numeric(Forest_integrity_sd)),
                 width = 0.2,
                 position = position_dodge(0.9),
                 color = "black") +
@@ -283,45 +325,7 @@ plot_2 <-ggplot(fuse_stats, aes(x = Category, y = Forest_integrity_index, fill =
   ggtitle("Forest Integrity Per Protected Area Category") +
   labs(fill = "PA Category") #+
 
-
-
-
-fuse_stats$perc_makeup_FUSE_species <- round(as.numeric(fuse_stats$perc_makeup_FUSE_species), 2)
-fuse_stats$FII_sd <- round(as.numeric(fuse_stats$sd_mean_prop_fuse), 2)
-
-# Calculate the ymin values for the error bars (taking the maximum of 0 and avg - sd)
-fuse_stats$ymin <- pmax(fuse_stats$perc_makeup_FUSE_species - fuse_stats$sd_mean_prop_fuse, 0)
-
-
-# number protected areas per category
-# Plot the data
-plot_3 <-ggplot(fuse_stats, aes(x = Category, y = perc_makeup_FUSE_species, fill = Category)) + scale_fill_manual(values = c("Ib"="Firebrick", "II"="red", "III"= "darkorange3", "IV"="darkorange","V"="goldenrod","VI"="gold","Not Applicable" = "grey51", "Not Assigned" = "grey", "Not Reported" = "lightgrey")) +
-  geom_col(position = position_dodge()) +
-  # geom_text(aes(label = X..protected areas.in.category), position = position_dodge(.9), vjust = 25, size = 5, color = "darkblue") +
-  geom_errorbar(aes(ymin = ymin,
-                    ymax = perc_makeup_FUSE_species + as.numeric(sd_mean_prop_fuse)),
-                width = 0.2,
-                position = position_dodge(0.9),
-                color = "black") +
-  # geom_text(aes(label = labels.minor), position = position_dodge(width = 0.9), vjust = -0.5, size = 4, color = "black") +
-  theme(
-    panel.background = element_rect(fill = "white", color = "black"), 
-    plot.title = element_text(hjust = 0.5),
-    axis.text = element_text(size = 12),
-    axis.title.x =  element_text(size = 12),
-    axis.title.y= element_text(size = 12)
-  )+  ylab("% Composition Fuse Species") +
-  xlab("IUCN protected area category") +
-  ggtitle("% Composition FUSE Species Per Protected Area Category") +
-  labs(fill = "PA Category") #+
-
-
-
-library(ggplot2)
-library(patchwork)
-
 # Assume you have two ggplot objects: plot1 and plot2
-
 # Create the layout
 layout <- plot_layout(
   ncol = 2,
@@ -329,20 +333,7 @@ layout <- plot_layout(
   heights = c(2, 1)   # The second column is split into two rows with equal heights
 )
 
-plot_1 / plot_2 / plot_3 + plot_annotation(tag_levels = 'A') & 
+plot_1 / plot_2 + plot_annotation(tag_levels = 'A') & 
   theme(plot.tag.position = c(0, 1),
         plot.tag = element_text(size = 10, hjust = -3, vjust = 3))
-
-
-# FUSE proportion
-library(raster)
-FUSE_all <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/all_fuse_species.tif")
-species_all <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/Spec_rich_joint_TA.tif")
-
-species_all <- resample(species_all, FUSE_all, method="bilinear")
-
-proportion_fuse <-(FUSE_all/species_all)*100
-
-setwd("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness")
-writeRaster(proportion_fuse,"proportion_fuse.tif",format="GTiff")
 
