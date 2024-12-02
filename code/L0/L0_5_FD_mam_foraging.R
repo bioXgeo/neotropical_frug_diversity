@@ -1,15 +1,11 @@
 # Title: Calculating Functional Diversity (Functional Dispersion) for Mammals in the Tropical Andes
-
 # Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
 #          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
-
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
-
 # Overview: This script calculates functional diversity indices for mammals in the Tropical Andes, 
 #           including functional dispersion (FD), species richness, and FUSE scores. Outputs 
 #           include rasterized maps of FD and species richness.
-
 # Data Output: Functional dispersion raster, species richness raster, and FUSE score outputs.
 
 # Date: September 25, 2023
