@@ -8,7 +8,7 @@ The Tropical Andes is known for its remarkable biodiversity; however, this regio
 NASA FINESST Grant #80NSSC19K1332
 
 ## Collaborators
-- Beth E. Gerstner: PhD Candidate, Michigan State University (MSU)
+- Beth E. Gerstner: Research Associate, Yale University (former doctoral student at MSU)
 - Phoebe L. Zarnetske: PI, [MSU Spatial & Community Ecology Lab (SpaCE Lab)](http://www.communityecologylab.com)
 
 ## Directories
