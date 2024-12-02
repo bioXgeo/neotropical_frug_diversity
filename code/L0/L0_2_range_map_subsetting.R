@@ -1,14 +1,14 @@
-#Title: Extracting and processing range maps for mammals and birds in Tropical Andes
+# Title: Extracting and processing range maps for mammals and birds in Tropical Andes
 
-#Project: Functional diversity of frugivores in the Tropical Andes: implications for conservation
+# Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
+#          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
 
-#Author: Beth E. Gerstner
+# Author: Beth E. Gerstner
+# Collaborators: Phoebe L. Zarnetske
 
-#Collaborators: Phoebe L. Zarnetske
+# Overview: This script subsets range maps from IUCN and BirdLife International for species in the Tropical Andes. The range map multipolygon for birds was previously subsetted to the Frugivoria dataset (https://github.com/bioXgeo/neotropical_frugivores/blob/master/code/L0/data_package_L0/L0_5_BOTW_processing.R). Further, it removes parts of the range where the species may be extinct and retains only areas where the species is present or inferred to be present.
 
-#Overview: This script subsets range maps from IUCN and BirdLife International for species in the Tropical Andes. The range map multipolygon for birds was previously subsetted to the Frugivoria dataset (https://github.com/bioXgeo/neotropical_frugivores/blob/master/code/L0/data_package_L0/L0_5_BOTW_processing.R). Further, it removes parts of the range where the species may be extinct and retains only areas where the species is present or inferred to be present.
-
-#Data output: Range maps (as multipolygons) subsetting to species in the Tropical Andes.
+# Data output: Range maps (as multipolygons) subsetting to species in the Tropical Andes.
 
 #Date: June 20th, 2023
 
@@ -29,7 +29,6 @@ library(rgeos)
 library(BAMMtools)
 
 
-
 # Read in all range maps from IUCN (2022) for mammals
 mam_shp <- st_read("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/IUCN_mammal_shape/MAMMALS_TERRESTRIAL_ONLY.shp")
 # Change species name column to match species list
@@ -43,17 +42,12 @@ colnames(bird_shp)[2] <- "IUCN_species_name"
 #read in Tropical Andes species lists
 mammal_list <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_mammal_subset_final_elevation.csv")
 bird_list <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_final.csv")
-mammal_list_redo <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_mammal_subset_impute.csv")
+
 #Subset mammal shapefile to Tropical Andes species list
 mam_TA_shp <- mam_shp %>% filter(IUCN_species_name %in% mammal_list$IUCN_species_name)
 bird_TA_shp <- bird_shp %>% filter(IUCN_species_name %in% bird_list$IUCN_species_name)
-
-#redo missing
- mam_missing <- mammal_list_redo %>% filter(!IUCN_species_name %in% mam_TA_shp$IUCN_species_name)
- mam_TA_shp <- mam_shp %>% filter(IUCN_species_name %in% mam_missing$IUCN_species_name)
  
- 
- nrow(mam_TA_shp)
+nrow(mam_TA_shp)
 nrow(bird_TA_shp)
 
 #Check how many distinct species are in each dataset
@@ -72,8 +66,6 @@ bird_TA_present <- bird_TA_shp[!bird_TA_shp$presenc >3,]
 
 #remove ranges that represent non-native ranges
 bird_TA_introduced <- bird_TA_present[bird_TA_present$origin ==3,]
-bird_TA_species_redo <- bird_TA_present %>% filter(IUCN_species_name %in% bird_TA_introduced$IUCN_species_name)
-bird_TA_species_redo <- bird_TA_species_redo[!bird_TA_species_redo$origin ==3,]
 
 ## Mammals
 #Join polygons for each species
@@ -126,7 +118,7 @@ for (i in 1:num_chunks) {
 
 ## BIRDS
 
-#Turn off spherical geometry because it's causing errors
+# Turn off spherical geometry because it's causing errors
 sf_use_s2(FALSE)
 
 # Perform union operation based on IUCN_species_name
@@ -160,52 +152,6 @@ for (i in 1:num_chunks) {
   
   # Subset the data for the current chunk
   chunk <- birds_union_multi[start_index:end_index, ]
-  
-  # Rasterize the chunk
-  bird_rasters <- fasterize(chunk, er, by = "IUCN_species_name")
-  
-  # Replace periods with underscores in file names
-  file_names <- gsub("\\.", "_", names(bird_rasters))
-  
-  # Save rasters with modified file names
-  writeRaster(bird_rasters, filename = file_names, bylayer = TRUE, format = "GTiff", overwrite=TRUE)
-}
-
-## REDO birds with non-native ranges (integrate before publication)
-
-sf_use_s2(FALSE)
-
-# Perform union operation based on IUCN_species_name
-birds_union_redo <- bird_TA_species_redo  %>% group_by(IUCN_species_name) %>% summarize(geometry = st_union(geometry))
-
-# Check the resulting multipolygon dataset
-print(birds_union_redo)
-
-er <- rast(ext(birds_union_redo), resolution=res(r))
-crs(er) <- crs(r)
-er <- raster(er)
-
-# Turn into multipolygon
-birds_union_multi_redo <-st_cast(birds_union_redo, "GEOMETRY") %>% st_cast("MULTIPOLYGON")
-
-
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/")
-
-# fasterize can only handle rasterizing 15 rows at a time
-# Define the chunk size
-chunk_size <- 15
-
-# Calculate the number of chunks
-num_chunks <- ceiling(nrow(birds_union_multi_redo) / chunk_size)
-
-# Loop through the chunks
-for (i in 1:num_chunks) {
-  # Define the start and end indices for the current chunk
-  start_index <- (i - 1) * chunk_size + 1
-  end_index <- min(i * chunk_size, nrow(birds_union_multi_redo))
-  
-  # Subset the data for the current chunk
-  chunk <- birds_union_multi_redo[start_index:end_index, ]
   
   # Rasterize the chunk
   bird_rasters <- fasterize(chunk, er, by = "IUCN_species_name")
@@ -287,7 +233,7 @@ srtm_filename <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/
 
 srtm <- raster(srtm_filename)
 # Read the mammal traits dataframe
-mam_traits <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_subsets/frugivoria_TA_mammal_subset_subs_rm.csv")  # Replace with the actual filename and pathma
+mam_traits <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_subsets/frugivoria_TA_mammal_subset_subs_rm.csv")  # Replace with the actual filename and pathnsme
 
 
 # Loop over each species in the mammal traits dataframe
@@ -343,8 +289,8 @@ for (i in 1:nrow(mam_traits)) {
 #Define input and output folders
 input_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip"
 output_folder <- "/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/rasterized_maps/bird_rasters/bird_rasters_tropical_andes_clip/elev_mask"
-
 srtm <- raster(srtm_filename)
+
 # Read the bird traits dataframe
 bird_traits <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_final_elevation.csv")  # Replace with the actual filename and path
 
@@ -398,7 +344,6 @@ for (i in 1:nrow(bird_traits)) {
 }
 
 ## Habitat masks
-
 # MAMMALS
 
 # Set the paths and filenames

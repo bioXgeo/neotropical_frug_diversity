@@ -1,35 +1,36 @@
-#Calculating Functional Diversity (Functional Dispersion - not weighted by abundance)
-# Adding foraging prevalence as a fuzzy trait
-# 1205 species total (790 birds and 415 mammals)
+# Title: Calculating Functional Diversity (Functional Dispersion) for birds in the Tropical Andes
 
+# Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
+#          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
+
+# Author: Beth E. Gerstner
+# Collaborators: Phoebe L. Zarnetske
+
+# Overview: This script calculates functional diversity indices for birds in the Tropical Andes, 
+#           including functional dispersion (FD), species richness, and FUSE scores. Outputs 
+#           include rasterized maps of FD and species richness. Adds foraging prevalence as a fuzzy trait.
+
+# Data Output: Functional dispersion raster, species richness raster, and FUSE score outputs.
+
+# Date: September 30, 2023
+
+
+# Load libraries
+library(raster)
 library(mFD)
 library(letsR)
 library(dplyr)
 library(sf)
-library(raster)
-library(dplyr)
-library(raster)
-library(maps)
-library(ggplot2)
-library(tmap)
-library(rnaturalearth)
-library(leaflet)
-library(ggsn)
-library(rgeos)
-library(BAMMtools)
-library(viridis)
-library(cowplot)
-library(gridExtra)
 
-#Read in bird PAM
-bird_PAM <- read.table("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/PAM_bird.txt")
+# Read in bird Presence-Absence Matrix (PAM)
+bird_PAM <- read.table("PLACEHOLDER_PATH/PAM_bird.txt")
 
-# Read in mammal and bird traits
-bird_traits_df <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_impute.csv")
+# Read in bird traits dataset
+bird_traits_df <- read.csv("PLACEHOLDER_PATH/frugivoria_TA_bird_subset_impute.csv")
 
-#Remove coordinates outside of Tropical Andes from the PAM
-# Read the shapefile
-TA_shapefile <- st_read("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_andes_shp/Tropical_Andes_shape.shp")  # Replace with the path to your shapefile
+# Remove coordinates outside of the Tropical Andes from the PAM
+# Read the Tropical Andes shapefile
+TA_shapefile <- st_read("PLACEHOLDER_PATH/Tropical_Andes_shape.shp") 
 
 #Location key to keep things straight for later on
 coordinates_df_bird <-as.data.frame(bird_PAM[,1:2])
@@ -179,7 +180,7 @@ asb_sp_bird_summ$"asb_sp_richn"           # Species richness per assemblage
 # Names of species present in random assemblage
 asb_sp_bird_summ$"asb_sp_nm"[[200]]   
 
-##FD 
+## FD 
 # scaled triats to center (x' = x - mean(x)), all traits have the same weight, gower distance because of mixed traits.
 # This will then be used to build PCOAs describing functional space. The PCOAs collapse the traits into dimensions that describe
 # most of the dissimilarity. PCoA is a dimensionality reduction technique that aims to summarize the dissimilarity matrix into a lower-dimensional space while preserving the relative distances between species. 
@@ -337,219 +338,48 @@ plots_alpha$"fori"$"patchwork"
 
 #Need to subset the coordinates made at the top to the same set of the assemblages (removed values less than 5 so these coords need to be removed to do this correctly)
 
-#Have coordinates and associated values
-
-library(raster)
-
-# Create an empty raster with desired resolution and extent
+## Create an empty raster with desired resolution and extent
 resolution <- c(0.08333333, 0.08333333)  # Set the desired resolution
 extent <- c(-91.65305, -57.48638, -22.90167, 12.43166)  # Set the desired extent
 empty_raster <- raster(resolution = resolution, xmn = extent[1], xmx = extent[2], ymn = extent[3], ymx = extent[4])
 
-# Generate coordinates
+## Generate coordinates
 subset_coords_bird <- site_loc_key_bird[rowSums(PAM_bird_site_final) >= 5, ]
-subset_coords_bird_sp <-subset_coords_bird[,1:2 ]
+subset_coords_bird_sp <- subset_coords_bird[, 1:2]
 
-#Get functional dispersion
+## Get functional dispersion
 fdis_bird <- alpha_fd_indices_bird$functional_diversity_indices$fdis
-
 bird_fd_sp <- data.frame(subset_coords_bird_sp, fdis_bird)
+setwd("PLACEHOLDER_PATH/Results/richness/")
+write.csv(bird_fd_sp, "bird_fd_sp.csv")
 
 # Convert the dataframe to sf format
 spatial_fdis_bird <- st_as_sf(bird_fd_sp, coords = c("Longitude.x.", "Latitude.y."))
 
 # Rasterize the sf data to create the FD raster
 fd_raster_bird <- rasterize(spatial_fdis_bird, empty_raster)
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
-writeRaster(fd_raster_bird$fdis_bird, "FD_birds_foraging_TA.tif", format="GTiff",overwrite=T)
-writeRaster(fd_raster_bird$ID, "FD_birds_TA_ID.tif", format="GTiff")
+writeRaster(fd_raster_bird$fdis_bird, "FD_birds_foraging_TA.tif", format = "GTiff", overwrite = TRUE)
 
-#Species richness
+# Write ID raster for analysis
+writeRaster(fd_raster_bird$ID, "FD_birds_TA_ID.tif", format = "GTiff", overwrite = TRUE)
+
+## Species richness
 spec_rich_bird <- alpha_fd_indices_bird$functional_diversity_indices$sp_richn
-
 bird_spec_rich_sp <- data.frame(subset_coords_bird_sp, spec_rich_bird)
 
 # Convert the dataframe to sf format
 spatial_spec_rich_bird <- st_as_sf(bird_spec_rich_sp, coords = c("Longitude.x.", "Latitude.y."))
 
-# Rasterize the sf data to create the FD raster
+# Rasterize the sf data to create the richness raster
 spec_rich_raster_bird <- rasterize(spatial_spec_rich_bird, empty_raster)
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
-writeRaster(spec_rich_raster_bird$spec_rich_bird, "Spec_rich_birds_TA.tif", format="GTiff",overwrite=T)
+setwd("PLACEHOLDER_PATH/Results/richness/")
+writeRaster(spec_rich_raster_bird$spec_rich_bird, "Spec_rich_birds_TA.tif", format = "GTiff", overwrite = TRUE)
 
-# You can check some species in certain cells
-# You can use the ID raster to figure out what cell is what and look at assemblages of interest
-asb_sp_bird_summ_final <- mFD::asb.sp.summary(asb_sp_w = subset_matrix)
-
-# Occurences 
-asb_sp_bird_occ <- asb_sp_bird_summ_final$"asb_sp_occ"
-
-#richness per cell
-asb_sp_bird_summ_final$"asb_sp_richn"   # Species richness per assemblage
-
-# Names of species present in random assemblage
-asb_sp_bird_summ_final$"asb_sp_nm"[[6015]]   
-
-
-# Understand relationship between species richness and functional diversity
-library(ggplot2)
-
-# Diversity metrics
-bird_diversity <-  data.frame(spec_rich_bird, fdis_bird)
-
-# Create a scatter plot
-ggplot(bird_diversity, aes(x = spec_rich_bird, y = fdis_bird)) +
-  geom_point() +
-  xlab("Species Richness") +
-  ylab("Functional Diversity")
-
-# Calculate correlation coefficient
-#correlation_bird_div <- cor(bird_diversity$spec_rich_bird, bird_diversity$fdis_bird)
-
-# Print the correlation coefficient
-#print(correlation)
-
-# Regression
-
-# Perform linear regression
-reg_model <- lm(fdis_bird ~ spec_rich_bird, data = bird_diversity)
-
-# Print the regression summary
-summary(reg_model)
-
-#plot bird diversity as a function of species richness ()
-# I just wanted to test and see if there was any relationship here, but TD and FD seem to vary independently in the Andes
-# Functional diversity cannot be explained by taxonomic diversity at this scale (10x10km)
-# It's possible this might be different at other scales (more species captured, maybe more redundancy at broader scales?)
-library(ggpmisc)
-ggplot(bird_diversity, aes(x = spec_rich_bird, y = fdis_bird)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-  stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "~~~~")),
-    formula = y ~ x,
-    parse = TRUE,
-    label.x = "right",
-    label.y = "top"
-  ) +
-  xlab("Species Richness (# species)") +
-  ylab("Functional Diversity (fdis)") +
-  ggtitle("Linear Regression: FD ~ TD")
-
-#highest 10% of values
-threshold_bird_fd <- quantile(values(fd_raster_bird$fdis_bird), probs = 0.9, na.rm=T)
-threshold_bird_td <-quantile(values(spec_rich_raster_bird$spec_rich_bird), probs = 0.9, na.rm=T)
-
-
-#FUSE
-
-bird_traits_IUCN <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_bird_subset_impute.csv")
-
-bird_traits_IUCN_final<- bird_traits_IUCN %>% filter(IUCN_species_name %in% bird_traits_df_subset$X)
-
+## FUSE
+bird_traits_IUCN <- read.csv("PLACEHOLDER_PATH/frugivoria_TA_bird_subset_impute.csv")
+bird_traits_IUCN_final <- bird_traits_IUCN %>% filter(IUCN_species_name %in% bird_traits_df_subset$X)
 
 IUCN_status_birds <- bird_traits_IUCN_final$IUCN_category
-IUCN_index <- lets.iucncont(IUCN_status_birds, dd = .5, ne = NA)
-bird_fuse <- fuse(sp_dist_bird, sp_faxes_coord_bird, GE= IUCN_index,standGE = FALSE) # need numerical vector of IUCN statuses 
+IUCN_index <- lets.iucncont(IUCN_status_birds, dd = 0.5, ne = NA)
+bird_fuse <- fuse(sp_dist_bird, sp_faxes_coord_bird, GE = IUCN_index, standGE = FALSE)
 write.csv(bird_fuse, "bird_fuse.csv")
-
-# MAP
-
-# Pull in world map
-worldMap <- ne_countries(scale = "medium", type = "countries", returnclass = "sf")
-
-# Subset world map. In this case we are removing the Galapagos by defining the bounding box around the Ecuador polygon.
-study_region <- worldMap %>% filter(continent == "South America" | continent== "North America")
-
-
-# Crop the study region to the bounding box of interest
-study_region_crop <-st_crop(study_region, xmin = -87, xmax = -61, ymin = -25, ymax = 13)
-
-
-#Richness rasters
-spec_rich_raster_point <- rasterToPoints(spec_rich_raster_bird, spatial = TRUE)
-spec_FD_raster_point <- rasterToPoints(fd_raster_bird, spatial = TRUE)
-
-# Convert to a 'conventional' dataframe
-spec_rich_raster_point <- data.frame(spec_rich_raster_point)
-fd_raster_point <- data.frame(spec_FD_raster_point)
-
-# Create a blank map of the Tropical Andes region
-taxonomic_diversity <- ggplot() + theme_bw() + geom_sf(data = study_region_crop, fill = "white") + geom_raster(data=spec_rich_raster_point, aes(x=x, y=y, fill=spec_rich_bird))+ scale_fill_viridis()
-functional_diversity <- ggplot() + theme_bw() + geom_sf(data = study_region_crop, fill = "white") + geom_raster(data=fd_raster_point, aes(x=x, y=y, fill=fdis_bird))+ scale_fill_viridis()
-
-
-#Add scale
-taxonomic_diversity_final <- taxonomic_diversity + theme(legend.position = "right", panel.background = element_rect(fill = "aliceblue")) + guides(fill = guide_colorbar(title = "Taxonomic Diversity")) +  ylab("Latitude") + xlab("Longitude") + scalebar(x.min = -83, x.max = -79.5, y.min =-25, y.max = -23,dist = 200, st.dist=.3, st.size=2.1, height=.4, transform = TRUE, dist_unit = "km", model = 'WGS84') + north(study_region_crop, location="bottomleft", scale=.1, symbol=1)
-
-functional_diversity_final <- functional_diversity + theme(legend.position = "right", panel.background = element_rect(fill = "aliceblue")) + guides(fill = guide_colorbar(title = "Functional Diversity")) +  ylab("Latitude") + xlab("Longitude") + scalebar(x.min = -83, x.max = -79.5, y.min =-25, y.max = -23,dist = 200, st.dist=.3, st.size=2.1, height=.4, transform = TRUE, dist_unit = "km", model = 'WGS84') + north(study_region_crop, location="bottomleft", scale=.1, symbol=1)
-
-#check the way the inset looks
-study_region_inset <- worldMap %>% filter(continent == "South America" | name == "Panama")
-
-
-test_inset <- ggplot() + geom_sf(data = study_region_inset) + theme_bw() + xlim(-90, -35)
-
-# Create inset box
-inset_map_box <- 
-  test_inset +
-  geom_rect(aes(
-    xmin = -85, 
-    xmax = -57.48638, 
-    ymin = -22.90167, 
-    ymax = 12.43166),
-    fill = NA, 
-    colour = "red",
-    size = 0.6,
-    alpha=.8
-  )
-
-# Add inset to taxonomic diversity map
-taxonomic_diversity_final_inset <-ggdraw(taxonomic_diversity_final) +
-  draw_plot(
-    {
-      inset_map_box +
-        theme(legend.position = "none", axis.title.x = element_blank(),
-              axis.title.y = element_blank(), axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks = element_blank(),
-              plot.background = element_blank(),
-              panel.grid.major = element_blank())
-    },
-    # The distance along a (0,1) x-axis to draw the left edge of the plot
-    x = 0.10, 
-    # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-    y = 0.70,
-    # The width and height of the plot expressed as proportion of the entire ggdraw object
-    width = 0.20, 
-    height = 0.30)
-
-# Add inset to functional diversity map
-functional_diversity_final_inset <-ggdraw(functional_diversity_final) +
-  draw_plot(
-    {
-      inset_map_box +
-        theme(legend.position = "none", axis.title.x = element_blank(),
-              axis.title.y = element_blank(), axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks = element_blank(),
-              plot.background = element_blank(),
-              panel.grid.major = element_blank())
-    },
-    # The distance along a (0,1) x-axis to draw the left edge of the plot
-    x = 0.10, 
-    # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-    y = 0.70,
-    # The width and height of the plot expressed as proportion of the entire ggdraw object
-    width = 0.20, 
-    height = 0.30)
-
-
-# Create multipanel plot
-birdmal_diversity <-grid.arrange(taxonomic_diversity_final_inset, functional_diversity_final_inset, ncol = 2)
-
-# Add labels to the grid
-grid.text("Taxonomic Diversity", x = 0.2, y = 0.98, gp = gpar(fontsize = 12, fontface = "bold"))
-grid.text("Functional Diversity", x = 0.72, y = 0.98, gp = gpar(fontsize = 12, fontface = "bold"))
-
-

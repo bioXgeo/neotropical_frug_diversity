@@ -1,35 +1,45 @@
-#3d maps
+# Title: 3D Visualization and Analysis of Elevation and Functional Diversity in Birds and Mammals
+# Project: Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
+#          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
+# Author: Beth E. Gerstner
+# Collaborators: Phoebe L. Zarnetske
+# Overview: This script generates 3D maps to visualize the relationship between elevation and functional diversity (FD)
+#           for bird and mammal species across the Tropical Andes. It also performs linear regression to assess the 
+#           relationship between FD and elevation.
+# Outputs:
+#   - 3D scatter and surface plots for birds and mammals
+#   - Linear regression plots of FD vs. elevation for birds and mammals
+#   - Summary of elevation and FD correlations
+# Date: September 1, 2023
 
-# Load required packages
+
+# Load Required Packages
 library(plotly)
 library(elevatr)
+library(ggpmisc)
+library(ggplot2)
+library(sp)
+library(raster)
 
-# Set the coordinates of the points (replace with your own coordinates)
-points <-bird_fd_sp[,1:2] 
-coordinates(points)= ~ Longitude.x.+ Latitude.y.
-srtm <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/10km_srtm.tif")
+# Load Elevation Raster
+srtm <- raster("PLACEHOLDER_PATH/richness/10km_srtm.tif")
 
-# Extract elevation values from the data
-elevation <- extract(srtm, points )
 
+# Birds: 3D Visualization
+# Prepare Data: Extract Elevation
+points <- bird_fd_sp[, 1:2]
+coordinates(points) <- ~ Longitude.x. + Latitude.y.
+elevation <- extract(srtm, points)
 bird_fd_sp$elevation <- elevation
-bird_fd_sp_rm <- bird_fd_sp[!bird_fd_sp$elevation <0,]
+bird_fd_sp_rm <- bird_fd_sp[!bird_fd_sp$elevation < 0, ]
 
-# Load required packages
-library(plotly)
-
-# Create data for the contour plot (replace with your own data)
-longitude <- bird_fd_sp_rm $Longitude.x.
+# Define Variables for Plot
+longitude <- bird_fd_sp_rm$Longitude.x.
 latitude <- bird_fd_sp_rm$Latitude.y.
 elevation <- bird_fd_sp_rm$elevation
 functional_diversity <- bird_fd_sp_rm$fdis_bird
 
-# Get the range of functional diversity values
-fdiv_min <- min(functional_diversity)
-fdiv_max <- max(functional_diversity)
-fdiv_range <- seq(fdiv_min, fdiv_max, length.out = 5)  # Adjust the number of ticks as desired
-
-# Create the 3D scatter plot
+# Create 3D Scatter Plot
 scatter_plot <- plot_ly(
   x = longitude, y = latitude, z = elevation,
   type = "scatter3d",
@@ -39,66 +49,51 @@ scatter_plot <- plot_ly(
     color = functional_diversity,
     colorscale = "Viridis",
     showscale = TRUE,
-    colorbar = list(title = "Fdis", titleside = "top", len=.6)
+    colorbar = list(title = "Fdis", titleside = "top", len = 0.6)
   )
 )
 
-# Create the 3D surface plot
+# Create 3D Surface Plot
 surface_plot <- plot_ly(
   x = longitude, y = latitude, z = elevation,
   type = "surface",
   showscale = FALSE
 )
 
-# Combine the scatter plot and surface plot
+# Combine Scatter and Surface Plots
 fig <- subplot(
   scatter_plot, surface_plot,
   nrows = 2, heights = c(0.6, 0.4),
   margin = 0.04
 )
 
-# Customize the plot appearance (optional)
+# Customize and Display the Plot
 fig <- fig %>% layout(
   scene = list(
     xaxis = list(title = "Longitude"),
     yaxis = list(title = "Latitude"),
     zaxis = list(title = "Elevation"),
-    aspectratio = list(x = .7, y = 1, z = .7)  # Adjust the aspect ratio values
+    aspectratio = list(x = 0.7, y = 1, z = 0.7)
   )
 )
-
-# Display the plot
 fig
 
-## MAMMALS
 
-# Set the coordinates of the points (replace with your own coordinates)
-points <-mam_fd_sp[,1:2] 
-coordinates(points)= ~ Longitude.x.+ Latitude.y.
-srtm <- raster("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/10km_srtm.tif")
-
-# Extract elevation values from the data
-elevation <- extract(srtm, points )
-
+# Mammals: 3D Visualization
+# Prepare Data: Extract Elevation
+points <- mam_fd_sp[, 1:2]
+coordinates(points) <- ~ Longitude.x. + Latitude.y.
+elevation <- extract(srtm, points)
 mam_fd_sp$elevation <- elevation
-mam_fd_sp_rm <- mam_fd_sp[!mam_fd_sp$elevation <0,]
+mam_fd_sp_rm <- mam_fd_sp[!mam_fd_sp$elevation < 0, ]
 
-# Load required packages
-library(plotly)
-
-# Create data for the contour plot (replace with your own data)
+# Define Variables for Plot
 longitude <- mam_fd_sp_rm$Longitude.x.
 latitude <- mam_fd_sp_rm$Latitude.y.
 elevation <- mam_fd_sp_rm$elevation
 functional_diversity <- mam_fd_sp_rm$fdis_mam
 
-
-# Get the range of functional diversity values
-fdiv_min <- min(functional_diversity)
-fdiv_max <- max(functional_diversity)
-fdiv_range <- seq(fdiv_min, fdiv_max, length.out = 5)  # Adjust the number of ticks as desired
-
-# Create the 3D scatter plot
+# Create 3D Scatter Plot
 scatter_plot <- plot_ly(
   x = longitude, y = latitude, z = elevation,
   type = "scatter3d",
@@ -108,68 +103,62 @@ scatter_plot <- plot_ly(
     color = functional_diversity,
     colorscale = "Viridis",
     showscale = TRUE,
-    colorbar = list(title = "Fdis", titleside = "top",  len = 0.6)
+    colorbar = list(title = "Fdis", titleside = "top", len = 0.6)
   )
 )
 
-# Create the 3D surface plot
+# Create 3D Surface Plot
 surface_plot <- plot_ly(
   x = longitude, y = latitude, z = elevation,
   type = "surface",
   showscale = FALSE
 )
 
-# Combine the scatter plot and surface plot
+# Combine Scatter and Surface Plots
 fig <- subplot(
   scatter_plot, surface_plot,
   nrows = 2, heights = c(0.6, 0.4),
   margin = 0.04
 )
 
-# Customize the plot appearance (optional)
+# Customize and Display the Plot
 fig <- fig %>% layout(
   scene = list(
     xaxis = list(title = "Longitude"),
     yaxis = list(title = "Latitude"),
     zaxis = list(title = "Elevation"),
-    aspectratio = list(x = .7, y = 1, z = .7)  # Adjust the aspect ratio values
+    aspectratio = list(x = 0.7, y = 1, z = 0.7)
   )
 )
 
-# Display the plot
-fig
- 
-mam_fd_sp_rm$elevation
-#elevation
-library(ggpmisc)
+# Linear Regression Analysis
+
+# Mammals: Functional Diversity vs. Elevation
 ggplot(mam_fd_sp_rm, aes(x = elevation, y = fdis_mam)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color = "blue") +
   stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., p.value.label,sep = "~~~~")),
+    aes(label = paste(..eq.label.., ..rr.label.., p.value.label, sep = "~~~~")),
     formula = y ~ x,
     parse = TRUE,
     label.x = "left",
     label.y = "bottom"
   ) +
   xlab("Elevation (m)") +
-  ylab("Functional Diversity (fdis)") +
-  ggtitle("Linear Regression: FD ~ elevation")
+  ylab("Functional Diversity (Fdis)") +
+  ggtitle("Linear Regression: FD ~ Elevation (Mammals)")
 
-#birds
-
-#elevation
-library(ggpmisc)
+# Birds: Functional Diversity vs. Elevation
 ggplot(bird_fd_sp_rm, aes(x = elevation, y = fdis_bird)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color = "blue") +
   stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label..,  p.value.label,sep = "~~~~")),
+    aes(label = paste(..eq.label.., ..rr.label.., p.value.label, sep = "~~~~")),
     formula = y ~ x,
     parse = TRUE,
     label.x = "left",
     label.y = "bottom"
   ) +
   xlab("Elevation (m)") +
-  ylab("Functional Diversity (fdis)") +
-  ggtitle("Linear Regression: FD ~ elevation")
+  ylab("Functional Diversity (Fdis)") +
+  ggtitle("Linear Regression: FD ~ Elevation (Birds)")

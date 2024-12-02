@@ -1,20 +1,37 @@
-#Calculating Functional Diversity (Functional Dispersion - not weighted by abundance)
-# 1205 species total (790 birds and 415 mammals)
+# Title: Calculating Functional Diversity (Functional Dispersion) for Mammals in the Tropical Andes
 
+# Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
+#          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
+
+# Author: Beth E. Gerstner
+# Collaborators: Phoebe L. Zarnetske
+
+# Overview: This script calculates functional diversity indices for mammals in the Tropical Andes, 
+#           including functional dispersion (FD), species richness, and FUSE scores. Outputs 
+#           include rasterized maps of FD and species richness.
+
+# Data Output: Functional dispersion raster, species richness raster, and FUSE score outputs.
+
+# Date: September 25, 2023
+
+
+# Load libraries
+library(raster)
 library(mFD)
 library(letsR)
 library(dplyr)
 library(sf)
 
-#Read in mam PAM
-mam_PAM <- read.table("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/PAM_mam.txt")
+# Read in mammal Presence-Absence Matrix (PAM)
+mam_PAM <- read.table("PLACEHOLDER_PATH/PAM_mam.txt")
 
-# Read in mammal and mam traits
-mam_traits_df <- read.csv("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/frugivoria_TA_mammal_subset_impute.csv")
+# Read in mammal traits dataset
+mam_traits_df <- read.csv("PLACEHOLDER_PATH/frugivoria_TA_mammal_subset_impute.csv")
 
-#Remove coordinates outside of Tropical Andes from the PAM
-# Read the shapefile
-TA_shapefile <- st_read("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/tropical_andes_shp/Tropical_Andes_shape.shp")  # Replace with the path to your shapefile
+# Remove coordinates outside of the Tropical Andes from the PAM
+# Read the Tropical Andes shapefile
+TA_shapefile <- st_read("PLACEHOLDER_PATH/Tropical_Andes_shape.shp") 
+
 
 #Location key to keep things straight for later on
 coordinates_df_mam <-as.data.frame(mam_PAM[,1:2])
@@ -68,7 +85,6 @@ mam_traits_df$body_mass_e <- as.numeric(mam_traits_df$body_mass_e)
 mam_traits_df$generation_time<- as.numeric(mam_traits_df$generation_time)
 mam_traits_df$habitat_breadth <- factor(mam_traits_df$habitat_breadth, ordered = TRUE)
 mam_traits_df$for_strat_value_e <- as.factor(mam_traits_df$for_strat_value_e)
-#names(mam_traits_df)[1] <- ""
 
 
 # Remove the species from PAM that have no occurrences anymore after subsetting to TA
@@ -105,7 +121,7 @@ mam_traits_df <-as.data.frame(mam_traits_matrix)
 mam_traits_df$IUCN_species_name <-NULL
 
 
-#fix types
+# Fix types
 mam_traits_df$diet_cat <- factor(mam_traits_df$diet_cat)
 mam_traits_df$diet_breadth <- as.numeric(mam_traits_df$diet_breadth)
 mam_traits_df$body_mass_e <- as.numeric(mam_traits_df$body_mass_e)
@@ -137,7 +153,7 @@ mam_traits_summ$"tr_types"
 # View the traits types for non-continuous traits
 mam_traits_summ$"mod_list"                   
 
-#Turn to matrix
+# Turn to matrix
 PAM_mam_site_final <- as.matrix(PAM_mam_site_final)
 # Summary of the assemblages * species dataframe:
 asb_sp_mam_summ <- mFD::asb.sp.summary(asb_sp_w = PAM_mam_site_final)
@@ -145,29 +161,19 @@ asb_sp_mam_summ <- mFD::asb.sp.summary(asb_sp_w = PAM_mam_site_final)
 # Occurences 
 asb_sp_mam_occ <- asb_sp_mam_summ$"asb_sp_occ"
 
-#richness per cell
+# Richness per cell
 asb_sp_mam_summ$"asb_sp_richn"           # Species richness per assemblage
 
 # Names of species present in random assemblage
 asb_sp_mam_summ$"asb_sp_nm"[[8575]] 
 asb_sp_bird_summ$"asb_sp_nm"[[8672]]   
 
-#functional entities
-#FE_mam <-mFD::sp.to.fe(
-#  sp_tr       = mam_traits_df, 
-#  tr_cat      = mam_traits_cat, 
-#  fe_nm_type  = "fe_rank", 
-#  check_input = TRUE) 
-#fe_tr <- FE_mam$"fe_tr"
-#species per entity
-#fe_nb_sp <- FE_mam$"fe_nb_sp"
-
-##FD 
-# scaled triats to center (x' = x - mean(x)), all traits have the same weight, gower distance because of mixed traits.
+## FD 
+# scaled traits to center (x' = x - mean(x)), all traits have the same weight, gower distance because of mixed traits.
 # This will then be used to build PCOAs describing functional space. The PCOAs collapse the traits into dimensions that describe
 # most of the dissimilarity. PCoA is a dimensionality reduction technique that aims to summarize the dissimilarity matrix into a lower-dimensional space while preserving the relative distances between species. 
-#It transforms the dissimilarities into coordinates along the principal axes that capture the most significant variation. 
-#However, the focus is on capturing overall dissimilarity patterns rather than explicitly separating and representing individual traits.
+# It transforms the dissimilarities into coordinates along the principal axes that capture the most significant variation. 
+# However, the focus is on capturing overall dissimilarity patterns rather than explicitly separating and representing individual traits.
 sp_dist_mam <- mFD::funct.dist(
   sp_tr         = mam_traits_df,
   tr_cat        = mam_traits_cat,
@@ -180,10 +186,10 @@ sp_dist_mam <- mFD::funct.dist(
 # Choose number of output digits
 round(sp_dist_mam, 3)                 
 
-#Assessing quality using PCOA (values are coordinates in PCOA space)
-#Compute a Principal Coordinates Analysis (PCoA) using functional distance between species. Then the function evaluates the quality of spaces built using an increasing number of principal components. 
-#Quality is evaluated as the (absolute or squared) deviation between trait-based distance (input) and distance in the PCoA-based space (raw Euclidean distance or scaled distance according to its maximum value and maximum of trait-based distance). Option to compute a functional dendrogram and its quality. This function is based on the framework presented in Maire et al. (2015).
-#For mams the mad is lowest 4 dimensions. We can therefore go forward with 4 dimensions as this can decrease
+# Assessing quality using PCOA (values are coordinates in PCOA space)
+# Compute a Principal Coordinates Analysis (PCoA) using functional distance between species. Then the function evaluates the quality of spaces built using an increasing number of principal components. 
+# Quality is evaluated as the (absolute or squared) deviation between trait-based distance (input) and distance in the PCoA-based space (raw Euclidean distance or scaled distance according to its maximum value and maximum of trait-based distance). Option to compute a functional dendrogram and its quality. This function is based on the framework presented in Maire et al. (2015).
+# For mams the mad is lowest 4 dimensions. We can therefore go forward with 4 dimensions as this can decrease
 # computation time and still closely represent the dissimilary matrix. May be able to skip the removal of species less than 4 per assemblage.
 fspaces_quality_mam<- mFD::quality.fspaces(
   sp_dist             = sp_dist_mam,
@@ -211,7 +217,7 @@ mFD::quality.fspaces.plot(
   x_lab                      = "Trait-based distance")
 
 
-#testing correlation between functional axes and traits
+# Testing correlation between functional axes and traits
 sp_faxes_coord_mam <- fspaces_quality_mam$"details_fspaces"$"sp_pc_coord"
 
 # View the components of the PCA axes *Remember the firt few components explain the most variation in dissimilarity. Clusters into groups
@@ -227,7 +233,7 @@ mam_tr_faxes$"tr_faxes_stat"[which(mam_tr_faxes$"tr_faxes_stat"$"p.value" < 0.05
 # Return plots:
 mam_tr_faxes$"tr_faxes_plot"
 
-#plotting functional space
+# Plotting functional space
 sp_faxes_coord_mam <- fspaces_quality_mam$"details_fspaces"$"sp_pc_coord"
 
 big_plot <- mFD::funct.space.plot(
@@ -256,13 +262,13 @@ big_plot <- mFD::funct.space.plot(
   nm_fontface     = "plain",
   check_input     = TRUE)
 
-#Need to remove parts of the PAM that have values less than or equal to the number of dimensions (4)
+# Need to remove parts of the PAM that have values less than or equal to the number of dimensions (4)
 # Calculate row sums
 row_sums <- rowSums(PAM_mam_site_final)
 subset_matrix <- PAM_mam_site_final[row_sums >= 5, ]
 
 
-#computing FD
+# Computing FD
 # The number of species per assemblage has to be higher or equal to the number of traits
 alpha_fd_indices_mam <- mFD::alpha.fd.multidim(
   sp_faxes_coord   = sp_faxes_coord_mam[ , c("PC1", "PC2", "PC3", "PC4")],
@@ -315,76 +321,77 @@ plots_alpha$"fdis"$"patchwork"
 
 plots_alpha$"fori"$"patchwork"
 
-## Turning the FD values into a raster
+## Turning Functional Diversity (FD) Values into a Raster
 
-#Need to subset the coordinates made at the top to the same set of the assemblages (removed values less than 5 so these coords need to be removed to do this correctly)
-
-#Have coordinates and associated values
-
-library(raster)
-
-# Create an empty raster with desired resolution and extent
-resolution <- c(0.08333333, 0.08333333)  # Set the desired resolution
-extent <- c(-91.65305, -57.48638, -22.90167, 12.43166)  # Set the desired extent
+# Define raster resolution and extent
+resolution <- c(0.08333333, 0.08333333)  # 10km resolution
+extent <- c(-91.65305, -57.48638, -22.90167, 12.43166)  # Tropical Andes extent
 empty_raster <- raster(resolution = resolution, xmn = extent[1], xmx = extent[2], ymn = extent[3], ymx = extent[4])
 
-# Generate coordinates
+# Subset coordinates to match assemblages with sufficient species
 subset_coords_mam <- site_loc_key_mam[rowSums(PAM_mam_site_final) >= 5, ]
-subset_coords_mam_sp <-subset_coords_mam[,1:2 ]
+subset_coords_mam_sp <- subset_coords_mam[, 1:2]
 
-#Get functional dispersion
+# Generate Functional Dispersion (FD) Raster
 fdis_mam <- alpha_fd_indices_mam$functional_diversity_indices$fdis
-
 mam_fd_sp <- data.frame(subset_coords_mam_sp, fdis_mam)
+setwd("PLACEHOLDER_PATH/Results/richness/")
+write.csv(mam_fd_sp, "mam_fd_sp.csv")
 
-# Convert the dataframe to sf format
 spatial_fdis_mam <- st_as_sf(mam_fd_sp, coords = c("Longitude.x.", "Latitude.y."))
-
-# Rasterize the sf data to create the FD raster
 fd_raster_mam <- rasterize(spatial_fdis_mam, empty_raster)
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
-writeRaster(fd_raster_mam$fdis_mam, "FD_mams_foraging_TA.tif", format="GTiff",overwrite=T)
 
-#Species richness
+# Save FD raster
+writeRaster(fd_raster_mam$fdis_mam, "PLACEHOLDER_PATH/FD_mams_TA.tif", format = "GTiff", overwrite = TRUE)
+
+# Generate Species Richness Raster
 spec_rich_mam <- alpha_fd_indices_mam$functional_diversity_indices$sp_richn
-
 mam_spec_rich_sp <- data.frame(subset_coords_mam_sp, spec_rich_mam)
-
-# Convert the dataframe to sf format
 spatial_spec_rich_mam <- st_as_sf(mam_spec_rich_sp, coords = c("Longitude.x.", "Latitude.y."))
-
-# Rasterize the sf data to create the FD raster
 spec_rich_raster_mam <- rasterize(spatial_spec_rich_mam, empty_raster)
-setwd("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/Results/richness/")
-writeRaster(spec_rich_raster_mam$spec_rich_mam, "Spec_rich_TA.tif", format="GTiff",overwrite=T)
 
-#highest 10% of values
-threshold <- quantile(values(fd_raster_mam$fdis_mam), probs = 0.9, na.rm=T)
-threshold_mam_td <-quantile(values(spec_rich_raster_mam$spec_rich_mam), probs = 0.9, na.rm=T)
+# Save species richness raster
+writeRaster(spec_rich_raster_mam$spec_rich_mam, "PLACEHOLDER_PATH/Spec_rich_TA.tif", format = "GTiff", overwrite = TRUE)
 
-#FUSE
+## Calculate FUSE Scores
 
-mam_traits_IUCN <- read.csv("C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv")
-
-mam_traits_IUCN_final<- mam_traits_IUCN %>% filter(IUCN_species_name %in% mam_traits_df_subset$IUCN_species_name)
-
+# Load IUCN statuses
+mam_traits_IUCN <- read.csv("PLACEHOLDER_PATH/IUCN_statuses.csv")
+mam_traits_IUCN_final <- mam_traits_IUCN %>%
+  filter(IUCN_species_name %in% mam_traits_df_subset$IUCN_species_name)
 
 IUCN_status_mams <- mam_traits_IUCN_final$IUCN_category
-IUCN_index <- lets.iucncont(IUCN_status_mams, dd = .5, ne = NA)
-mam_fuse <- fuse(sp_dist_mam, sp_faxes_coord_mam, GE= IUCN_index,standGE = FALSE) # need numerical vector of IUCN statuses 
-write.csv(mam_fuse, "mam_fuse_foraging_test.csv")
+IUCN_index <- lets.iucncont(IUCN_status_mams, dd = 0.5, ne = NA)
 
-# MAP
+# Calculate FUSE scores
+mam_fuse <- fuse(sp_dist_mam, sp_faxes_coord_mam, GE = IUCN_index, standGE = FALSE)
+write.csv(mam_fuse, "PLACEHOLDER_PATH/mam_fuse_results.csv")
 
+## Visualize FD and Richness Maps
+
+# Prepare Tropical Andes study region as a dataframe
 study_region <- as.data.frame(study_region)
-# Need the raster to be a dataframe for mapping. Convert to points to do this.
-spec_rich_raster_point <- rasterToPoints(spec_rich_raster_mam, spatial = TRUE)
-spec_mam_raster_point <- rasterToPoints(fd_raster_mam, spatial = TRUE)
 
-# Convert to a 'conventional' dataframe
-spec_rich_raster_point <- data.frame(spec_rich_raster_point)
-fd_raster_point <- data.frame(spec_mam_raster_point)
+# Convert rasters to dataframes for mapping
+spec_rich_raster_point <- data.frame(rasterToPoints(spec_rich_raster_mam, spatial = TRUE))
+fd_raster_point <- data.frame(rasterToPoints(fd_raster_mam, spatial = TRUE))
 
-# Create a blank map of the Tropical Andes region
-test <- ggplot() + theme_bw() + geom_sf(data = study_region, fill = "white") + geom_raster(data=spec_rich_raster_point, aes(x=x, y=y, fill=spec_rich_mam))+ scale_fill_viridis()
-test_2 <- ggplot() + theme_bw() + geom_sf(data = study_region, fill = "white") + geom_raster(data=fd_raster_point, aes(x=x, y=y, fill=fdis_mam))+ scale_fill_viridis()
+# Create species richness map
+richness_map <- ggplot() +
+  theme_bw() +
+  geom_sf(data = study_region, fill = "white") +
+  geom_raster(data = spec_rich_raster_point, aes(x = x, y = y, fill = spec_rich_mam)) +
+  scale_fill_viridis() +
+  labs(title = "Species Richness in the Tropical Andes", fill = "Richness")
+
+# Create functional diversity map
+fd_map <- ggplot() +
+  theme_bw() +
+  geom_sf(data = study_region, fill = "white") +
+  geom_raster(data = fd_raster_point, aes(x = x, y = y, fill = fdis_mam)) +
+  scale_fill_viridis() +
+  labs(title = "Functional Diversity in the Tropical Andes", fill = "FD")
+
+# Display the maps
+print(richness_map)
+print(fd_map)
