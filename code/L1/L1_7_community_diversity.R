@@ -3,7 +3,7 @@
 #          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
-# Overview: This script performs Mann-Whitney U tests, Kruskal-Wallis tests, and post-hoc Dunn's tests (if applicable) 
+# Overview: This script performs Mann-Whitney U tests
 #           to evaluate the differences in biodiversity metrics (FUSE, FD, TD, and forest integrity) across park categories and community managed lands.
 # Outputs: 
 #   - Mann-Whitney U test results for community-managed lands vs. other areas
