@@ -10,7 +10,7 @@ The Tropical Andes is known for its remarkable biodiversity; however, this regio
 - Phoebe L. Zarnetske, Ph.D.: PI, [MSU Spatial & Community Ecology Lab (SpaCE Lab)](http://www.communityecologylab.com)
 
 ## Publications
-TBD
+Gerstner, B.E., Zarnetske, P.L., (2024) Evaluating the effectiveness of protected areas and community-managed lands in capturing multiple dimensions of frugivorous biodiversity in the Tropical Andes. Biological Conservation.
 
 
 ## Code & Workflow
