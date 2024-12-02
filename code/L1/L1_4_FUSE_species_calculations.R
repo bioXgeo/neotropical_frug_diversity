@@ -4,8 +4,8 @@
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
 # Overview: 
-# This script processes species distribution maps for FUSE species across birds, mammals, 
-# and joint metrics. It calculates the sum of species distributions and makes a raster, masks by the Tropical Andes region, 
+# This script processes range maps for FUSE species across birds, mammals, 
+# and joint metrics. It calculates the sum of range maps and makes a raster, masks by the Tropical Andes region, 
 # and computes the average FUSE species per park and per park category.
 # Data Output:
 #   - Raster files of summed FUSE species distributions masked by the Tropical Andes, raster of FUSE species proportions
