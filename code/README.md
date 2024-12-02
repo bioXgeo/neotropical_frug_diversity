@@ -7,9 +7,14 @@ The Tropical Andes is known for its remarkable biodiversity; however, this regio
 ## Funding
 NASA FINESST Grant #80NSSC19K1332
 
+NSF CC* Compute #2200792
+
+Michigan State University
+
 ## Collaborators
-- Beth E. Gerstner, Ph.D.: Staff Scientist, Yale University
-- Phoebe L. Zarnetske, Ph.D.: PI, [MSU Spatial & Community Ecology Lab (SpaCE Lab)](http://www.communityecologylab.com)
+- Beth E. Gerstner, Ph.D (Michigan State University). Current Postion: Staff scientist, Yale University
+- Phoebe L. Zarnetske, Ph.D.: PI, [Michigan State University Spatial & Community Ecology Lab (SpaCE Lab)](http://www.communityecologylab.com)
+- Pat Bills, MSU Data Scientist
 
 ## Directories
 
@@ -47,4 +52,4 @@ The L2 subfolder contains scripts for Level-2 analysis, mainly visualization of 
 
 
 
-*This readme last modified by BEG on 12 2 2024*
+*This readme last modified by BEG and PLZ on 12 2 2024*
