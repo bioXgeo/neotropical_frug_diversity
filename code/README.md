@@ -18,7 +18,7 @@ All directories are named for the data level, in accordance with guidelines from
 The L0 subfolder contains scripts for Level-0 (raw data) analysis, mainly pulling and compiling data. This contains the following scripts: 
 
 - L0_1_Frugivoria_tropical_andes_subset - generates IUCN-based Frugivoria subsets to the Tropical Andes
-- LO_2_range_map_subsetting - subsets range maps from IUCN and BirdLife International for species in the Tropical Andes
+- L0_2_range_map_subsetting - subsets range maps from IUCN and BirdLife International for species in the Tropical Andes
 - L0_3_imputation_gen_time - imputes missing traits
 - L0_4_presence_absence_richness - generates presence absence matrix and generates rasters of taxonomic diversity
 - L0_5_FD_mam_foraging - data prep and calculation of functional diversity for mammals
