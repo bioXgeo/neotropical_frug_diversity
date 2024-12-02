@@ -6,7 +6,9 @@ The Tropical Andes is known for its remarkable biodiversity; however, this regio
 
 ## Funding
 NASA FINESST Grant #80NSSC19K1332
+
 NSF CC* Compute #2200792
+
 Michigan State University
 
 ## Collaborators
@@ -23,8 +25,7 @@ Gerstner, B.E., Zarnetske, P.L. (2024) Evaluating the effectiveness of protected
 ## Code & Workflow
 This repository contains code and the accompanying workflow for calculating functional diversity of mammals and birds exhibiting frugivory, assessing spatial alignments and mismatches, and evaluating levels of protection for the Tropical Andes. The data workflow follows the recommendations from the [Environmental Data Initiative](http://www.environmentaldatainitiative.org). 
 
-The Frugivoria trait database (see related Data Paper publication above) is hosted by EDI:  
+## Dataset Repository
+The Frugivoria trait dataset (see related publication above), its R scripts, and supporting information are hosted on EDI and can be viewed [here](https://doi.org/10.6073/pasta/168e95f04d4726d31d868bfe22d749a5).
 
-- Gerstner, B.E., P.L. Zarnetske, and P. Bills. 2023. Frugivoria: A trait database for birds and mammals exhibiting frugivory across contiguous Neotropical moist forests ver 5. Environmental Data Initiative. https://doi.org/10.6073/pasta/168e95f04d4726d31d868bfe22d749a5.
-
-See ./code/readme.md for more details.
+- Gerstner, B.E., P.L. Zarnetske, and P. Bills. 2023. Frugivoria: A trait database for birds and mammals exhibiting frugivory across contiguous Neotropical moist forests ver 5. Environmental Data Initiative. https://doi.org/10.6073/pasta/168e95f04d4726d31d868bfe22d749a5. 
