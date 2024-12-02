@@ -76,7 +76,7 @@ mammals_union <- mam_TA_present %>% group_by(IUCN_species_name) %>% summarize(ge
 print(mammals_union)
 
 #create empty raster as a template using SRTM at 1km
-r <- rast("/mnt/ufs18/rs-008/plz-lab/DATA/neotropical_diversity/datasets/srtm_1km.tif")
+r <- rast("PLACEHOLDER_PATH//datasets/srtm_1km.tif")
 
 er <- rast(ext(mammals_union), resolution=res(r))
 crs(er) <- crs(r)
