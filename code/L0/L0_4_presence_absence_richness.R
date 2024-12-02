@@ -2,14 +2,11 @@
 
 # Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
 #          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
-
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
-
 # Overview: This script generates presence/absence matrices and species richness maps 
 #           for mammals, birds, and their combined datasets. The outputs include 
 #           rasterized species richness maps and text-based presence/absence matrices.
-
 # Data output: Rasterized richness maps and presence/absence matrices for mammals, birds, 
 #              and combined datasets.
 
