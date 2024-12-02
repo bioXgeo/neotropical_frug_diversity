@@ -2,13 +2,11 @@
 # 
 # Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
 #          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
-#
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
 # Overview: This script sums raster files across taxa and diversity types (e.g., species richness and 
 #           functional diversity) for given thresholds. This is to generate joined Frugivore maps including both mammals and birds.
 #           Outputs are saved as new raster files.
-#
 # Data Output: Summed binary raster files for joint diversity across thresholds.
 #
 # Date: August 1, 2023
