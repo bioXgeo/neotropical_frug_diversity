@@ -2,12 +2,11 @@
 
 # Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
 #          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
-
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
-
-# Overview: This script subsets range maps from IUCN and BirdLife International for species in the Tropical Andes. The range map multipolygon for birds was previously subsetted to the Frugivoria dataset (https://github.com/bioXgeo/neotropical_frugivores/blob/master/code/L0/data_package_L0/L0_5_BOTW_processing.R). Further, it removes parts of the range where the species may be extinct and retains only areas where the species is present or inferred to be present.
-
+# Overview: This script subsets range maps from IUCN and BirdLife International for species in the Tropical Andes. 
+# The range map multipolygon for birds was previously subsetted to the Frugivoria dataset (https://github.com/bioXgeo/neotropical_frugivores/blob/master/code/L0/data_package_L0/L0_5_BOTW_processing.R). 
+# Further, it removes parts of the range where the species may be extinct and retains only areas where the species is present or inferred to be present.
 # Data output: Range maps (as multipolygons) subsetting to species in the Tropical Andes.
 
 #Date: June 20th, 2023
