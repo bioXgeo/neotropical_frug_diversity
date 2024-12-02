@@ -2,14 +2,11 @@
 
 # Project: Evaluating the Effectiveness of Protected Areas and Community-Managed Lands 
 #          in Capturing Multiple Dimensions of Frugivorous Biodiversity in the Tropical Andes
-
 # Author: Beth E. Gerstner
 # Collaborators: Phoebe L. Zarnetske
-
 # Overview: This script introduces random missing values, performs imputation using 
 #           different methods (PMM, RF, CART), evaluates their performance, and applies 
 #           the best method (CART) for imputation on mammals and birds datasets.
-
 # Data output: Imputed datasets for mammals and birds with missing values filled 
 #              using the CART method.
 
