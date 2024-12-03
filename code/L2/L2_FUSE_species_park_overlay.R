@@ -21,7 +21,7 @@ library(viridis)
 library(cowplot)
 library(sf)
 
-#Parks maps
+# Parks maps
 # Pull in world map
 worldMap <- ne_countries(scale = "medium", type = "countries", returnclass = "sf")
 
@@ -149,7 +149,9 @@ fuse_map_inset <-ggdraw(FUSE_map) +
     width = 0.43, 
     height = 0.24)
 
-#Protected area stats
+## Protected area stats
+
+# Turn off spherical geometry
 sf_use_s2(FALSE)
 
 # Total area of the Tropical Andes
