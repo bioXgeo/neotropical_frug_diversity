@@ -28,7 +28,7 @@ The Frugivoria trait dataset (see related publication above), its R scripts, and
 - Gerstner, B.E., P.L. Zarnetske, and P. Bills. 2023. Frugivoria: A trait database for birds and mammals exhibiting frugivory across contiguous Neotropical moist forests ver 5. Environmental Data Initiative. https://doi.org/10.6073/pasta/168e95f04d4726d31d868bfe22d749a5.
 
 ## Code & Workflow
-This repository contains code and the accompanying workflow for calculating functional diversity of mammals and birds exhibiting frugivory, assessing spatial alignments and mismatches, and evaluating levels of protection for the Tropical Andes. The data workflow follows the recommendations from the [Environmental Data Initiative](http://www.environmentaldatainitiative.org). 
+This repository contains code and the accompanying workflow for calculating functional diversity of mammals and birds exhibiting frugivory, assessing spatial alignments and mismatches, and evaluating levels of protection for the Tropical Andes. The data workflow follows the recommendations from the [Environmental Data Initiative](https://edirepository.org/). 
 
 ## Directories
 
