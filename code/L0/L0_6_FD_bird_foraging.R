@@ -9,7 +9,7 @@
 #           include rasterized maps of FD and species richness. Adds foraging prevalence as a fuzzy trait.
 # Data Output: Functional dispersion raster, species richness raster, and FUSE score outputs.
 
-# Date: September 30, 2023
+# Date: August 30, 2023
 
 
 # Load libraries
