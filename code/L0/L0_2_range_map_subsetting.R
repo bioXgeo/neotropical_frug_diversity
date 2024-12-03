@@ -230,11 +230,11 @@ for (file in raster_files) {
 #Define input and output folders
 input_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip"
 output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/elev_mask"
-srtm_filename <- "PLACEHOLDER_PATH/datasets/srtm_1km.tif"
-
+srtm_filename <- "PLACEHOLDER_PATH/datasets/srtm_1km.tif" # elevation layer
 srtm <- raster(srtm_filename)
+
 # Read the mammal traits dataframe
-mam_traits <- read.csv("PLACEHOLDER_PATH/datasets/tropical_subsets/frugivoria_TA_mammal_subset_subs_rm.csv")  # Replace with the actual filename and pathnsme
+mam_traits <- read.csv("PLACEHOLDER_PATH/datasets/tropical_subsets/frugivoria_TA_mammal_subset_subs_rm.csv") 
 
 
 # Loop over each species in the mammal traits dataframe
@@ -293,7 +293,7 @@ output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/bird_rasters/bird_ras
 srtm <- raster(srtm_filename)
 
 # Read the bird traits dataframe
-bird_traits <- read.csv("PLACEHOLDER_PATH/datasets/frugivoria_TA_bird_subset_final_elevation.csv")  # Replace with the actual filename and path
+bird_traits <- read.csv("PLACEHOLDER_PATH/datasets/frugivoria_TA_bird_subset_final_elevation.csv")  
 
 # Loop over each species in the bird traits dataframe
 for (i in 1:nrow(bird_traits)) {
