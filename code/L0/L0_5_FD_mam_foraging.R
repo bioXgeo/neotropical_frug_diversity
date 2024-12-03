@@ -8,7 +8,7 @@
 #           include rasterized maps of FD and species richness.
 # Data Output: Functional dispersion raster, species richness raster, and FUSE score outputs.
 
-# Date: September 25, 2023
+# Date: August 25, 2023
 
 
 # Load libraries
