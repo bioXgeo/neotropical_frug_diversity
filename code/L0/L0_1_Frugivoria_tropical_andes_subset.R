@@ -53,8 +53,8 @@ colnames(TA_birds)[which(names(TA_birds) == "scientific_name")] <- "IUCN_species
 colnames(TA_mammals)[which(names(TA_mammals) == "scientific_name")] <- "IUCN_species_name"
 
 # Load Frugivoria datasets
-frugivoria_mammal <- read.csv("path/to/Frugivoria_mammal_database.csv")
-frugivoria_bird <- read.csv("path/to/Frugivoria_bird_database.csv")
+frugivoria_mammal <- read.csv("PLACEHOLDER_PATH/Frugivoria_mammal_database.csv")
+frugivoria_bird <- read.csv("PLACEHOLDER_PATH/Frugivoria_bird_database.csv")
 
 # Merge with Frugivoria datasets
 frugivoria_mam_TA <- frugivoria_mammal %>%
@@ -63,7 +63,7 @@ frugivoria_bird_TA <- frugivoria_bird %>%
   filter(IUCN_species_name %in% TA_birds$IUCN_species_name)
 
 # Save results
-output_dir <- "path/to/output_directory"
+output_dir <- "PLACEHOLDER_PATH/output_directory"
 write.csv(frugivoria_mam_TA, file.path(output_dir, "frugivoria_TA_mammal_subset.csv"))
 write.csv(frugivoria_bird_TA, file.path(output_dir, "frugivoria_TA_bird_subset.csv"))
 
