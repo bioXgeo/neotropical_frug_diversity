@@ -42,6 +42,7 @@ endemic_birds <- frugivoria_bird_TA %>%
   filter(habitat == "1") %>%
   pull(IUCN_species_name)
 
+# Species corrections
 # Ensure `Tremarctos ornatus` and `Pauxi unicornis` are included/minor habitat correction in Frugivoria dataset
 manual_additions_mammals <- c("Tremarctos ornatus")
 manual_additions_birds <- c("Pauxi unicornis")
@@ -122,22 +123,21 @@ create_ggdotchart <- function(FUSE_species_file, IUCN_status_file) {
 
 # Mammals
 
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets/mam_endemic_fuse.csv"
-IUCN_status_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/IUCN_statuses.csv"
+FUSE_species_file <- "PLACEHOLDER_PATH/tropical_subsets/mam_endemic_fuse.csv"
+IUCN_status_file <- "PLACEHOLDER_PATH/richness/IUCN_statuses.csv"
 dotchart_mammals <- create_ggdotchart(FUSE_species_file, IUCN_status_file)
 print(dotchart_mammals)
 
 # Birds
-FUSE_species_file <- "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/tropical_subsets/bird_endemic_fuse.csv"
+FUSE_species_file <- "PLACEHOLDER_PATH//tropical_subsets/bird_endemic_fuse.csv"
 dotchart_birds <- create_ggdotchart(FUSE_species_file, IUCN_status_file)
 print(dotchart_birds)
 
 plot_grid(dotchart_mammals, dotchart_birds, ncol=2, align=c("hv"))
 
-#FUSE bar plots
+## FUSE bar plots
 
-# Initialize the final stats table
-# Initialize the final stats table
+# Prep the final stats table
 combined_stats <- data.frame(
   Category = character(),
   X..parks.in.category = numeric(),
@@ -158,9 +158,9 @@ forest_stats <- data.frame(
 )
 
 # Define file paths
-parks_reserves_path <- "C:/Users/bgers/Desktop/testing/WDPA/WDPA_merged_TA.shp"
-tropical_andes_path <- "C:/Users/bgers/Desktop/testing/TA/Tropical_Andes_shape.shp"
-forest_integrity_path <- "C:/Users/bgers/Desktop/testing/forest_integrity_TA.tif"
+parks_reserves_path <- "PLACEHOLDER_PATH/WDPA/WDPA_merged_TA.shp"
+tropical_andes_path <- "PLACEHOLDER_PATH/TA/Tropical_Andes_shape.shp"
+forest_integrity_path <- "PLACEHOLDER_PATH/forest_integrity_TA.tif"
 
 # Read shapefiles and forest integrity raster
 parks_reserves <- st_read(parks_reserves_path)
@@ -171,16 +171,16 @@ forest_integrity_raster <- raster(forest_integrity_path)
 metrics <- c("FUSE", "FD", "TD")
 metric_paths <- list(
   FUSE = list(
-    mammals = "C:/Users/bgers/Desktop/testing/FUSE/FUSE_species_masked_TA_mam_foraging.tif",
-    birds = "C:/Users/bgers/Desktop/testing/FUSE/FUSE_species_masked_TA_birds_foraging.tif"
+    mammals = "PLACEHOLDER_PATH/FUSE_species_masked_TA_mam_foraging.tif",
+    birds = "PLACEHOLDER_PATH/FUSE_species_masked_TA_birds_foraging.tif"
   ),
   FD = list(
-    mammals = "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FD_mams_foraging_TA.tif",
-    birds = "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/FD_birds_foraging_TA.tif"
+    mammals = "CPLACEHOLDER_PATH/richness/FD_mams_foraging_TA.tif",
+    birds = "PLACEHOLDER_PATH/richness/FD_birds_foraging_TA.tif"
   ),
   TD = list(
-    mammals = "C:/Users/bgers/Desktop/MSU/Zarnetske_Lab/Data/Chapter_3/richness/Spec_rich_mam_TA.tif",
-    birds = "C:/Users/bgers/Desktop/testing/FUSE/FUSE_species_masked_TA_birds_foraging.tif"
+    mammals = "PLACEHOLDER_PATH/richness/Spec_rich_mam_TA.tif",
+    birds = "PLACEHOLDER_PATH/FUSE_species_masked_TA_birds_foraging.tif"
   )
 )
 
@@ -294,16 +294,13 @@ plot_1 <-ggplot(combined_stats, aes(x = Category, y = count_avg_FUSE, fill = Tax
     axis.title.y =  element_text(size = 12),
   )+ ylab("Average FUSE species count") + xlab("IUCN Protected Area Category") + ggtitle("Average FUSE Species Per Protected Area Category")
 
-#protected area type and forest integrity
-
-
+# Protected area type and forest integrity
 combined_stats$Forest_integrity_avg <- round(as.numeric(combined_stats$Forest_integrity_avg), 2)
 combined_stats$Forest_integrity_sd <- round(as.numeric(combined_stats$Forest_integrity_sd), 2)
 
 # Calculate the ymin values for the error bars (taking the maximum of 0 and avg - sd)
 combined_stats$ymin <- pmax(combined_stats$Forest_integrity_avg - combined_stats$Forest_integrity_sd, 0)
 
-# Pl
 # Plot the data
 plot_2 <-ggplot(combined_stats, aes(x = Category, y = Forest_integrity_avg, fill = Category)) + scale_fill_manual(values = c("Ib"="Firebrick", "II"="red", "III"= "darkorange3", "IV"="darkorange","V"="goldenrod","VI"="gold","Not Applicable" = "grey51", "Not Assigned" = "grey", "Not Reported" = "lightgrey")) +
   geom_col(position = position_dodge()) +
