@@ -290,7 +290,7 @@ for (i in 1:nrow(fuse_species_list)) {
 
 # Mask by Tropical Andes
 FUSE_species_masked_TA <- mask(summed_raster, TA_refined)
-setwd("PLACEHOLDER_PATH/neotropical_diversity/Results/richness/")
+setwd("PLACEHOLDER_PATH/Results/richness/")
 writeRaster(FUSE_species_masked_TA, "FUSE_species_masked_TA_joint.tif", format="GTiff", overwrite=T)
 
 # Want to calculate the average number of FUSE species per park and per park category
@@ -419,18 +419,20 @@ write.csv(avg_integrity_per_park_no_na, "avg_integrity_per_park.csv")
 ## PROPORTIONS OF FUSE SPECIES
 # Calculating proportion of FUSE species per PA/category
 
-# Read bird and mammal FUSE species lists
-fuse_species_list_birds <- read.csv("PLACEHOLDER_PATH/richness/bird_fuse.csv")
-fuse_species_list_mammals <- read.csv("PLACEHOLDER_PATH/richness/mam_fuse.csv")
+FUSE_all <- raster("PLACEHOLDER_PATH/richness/all_fuse_species.tif")
+species_all <- raster("PLACEHOLDER_PATH/richness/Spec_rich_joint_TA.tif")
 
-# Calculate total number of FUSE species
-total_fuse_species <- nrow(fuse_species_list_birds) + nrow(fuse_species_list_mammals)
+# Resample species richness raster of all species (birds and mammals combined)
+species_all <- resample(species_all, FUSE_all, method="bilinear")
 
-# Create the combined proportion raster
-proportion_raster_combined <- FUSE_species_masked_TA / total_fuse_species
+# Calculate proportion FUSE species
+proportion_raster_combined <-(FUSE_all/species_all)
+
+# Set working directory
+setwd("PLACEHOLDER_PATH/richness")
 
 # Save the proportion raster
-writeRaster(proportion_raster_combined, "FUSE_species_proportion_TA_combined.tif", format="GTiff", overwrite=TRUE)
+writeRaster(proportion_raster_combined,"FUSE_species_proportion_TA_combined.tif",format="GTiff")
 
 # Extract FUSE proportions for parks and categories
 avg_fuse_prop_per_category <- data.frame(Category = character(), Avg_FUSE_Proportion = numeric(), stringsAsFactors = FALSE)
