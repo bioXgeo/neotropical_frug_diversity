@@ -6,8 +6,10 @@
 # Collaborators: Phoebe L. Zarnetske
 # Overview: This script subsets range maps from IUCN and BirdLife International for species in the Tropical Andes. 
 # The range map multipolygon for birds was previously subsetted to the Frugivoria dataset (https://github.com/bioXgeo/neotropical_frugivores/blob/master/code/L0/data_package_L0/L0_5_BOTW_processing.R). 
-# Further, it removes parts of the range where the species may be extinct and retains only areas where the species is present or inferred to be present.
-# Data output: Range maps (as multipolygons) subsetting to species in the Tropical Andes.
+# Further, it removes parts of the range where the species may be extinct and retains only areas where the species is present or inferred to be present. It further subsets the ranges by habitat preference. Species habitat information was obtained through
+# the IUCN and rasters of habitat types were obtained from: 
+# Jung, M., Dahal, P.R., Butchart, S.H.M., Donald, P.F., De Lamo, X., Lesiv, M., Kapos, V., Rondinini, C., Visconti, P., 2020. A global map of terrestrial habitat types. Sci Data 7, 256. https://doi.org/10.1038/s41597-020-00599-8
+# Data output: AOH range maps (as multipolygons) subsetted to species in the Tropical Andes.
 
 #Date: June 20th, 2023
 
@@ -348,7 +350,7 @@ for (i in 1:nrow(bird_traits)) {
 # Set the paths and filenames
 input_folder <-"PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/elev_mask"
 output_folder <- "PLACEHOLDER_PATH/Results/rasterized_maps/mammal_rasters/mammal_rasters_tropical_andes_clip/AOH_final_mam"
-habitat_folder <- "PLACEHOLDER_PATH/datasets/IUCN_habitat_layers/"
+habitat_folder <- "PLACEHOLDER_PATH/datasets/IUCN_habitat_layers/" # obtained from Jung et al. 2020
 habitat_all_species <- read.csv("PLACEHOLDER_PATH/datasets/tropical_subsets/habitat_all_species.csv")
 
 # Get the list of species raster files
