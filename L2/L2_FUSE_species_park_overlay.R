@@ -73,7 +73,7 @@ colnames(species_df_fuse) <- c("Longitude", "Latitude", "FUSE_species")
 
 
 
-# Create the species richness map as a raster
+# Create FUSE map
 FUSE_map <- ggplot() +
   theme_bw() +
   geom_sf(data = study_region_crop, fill = "white") +
